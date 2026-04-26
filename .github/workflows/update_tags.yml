@@ -19,11 +19,12 @@ jobs:
           python-version: '3.11'
 
       - name: تثبيت المكتبات
-        run: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client trendsmcp
+        run: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client
+        #لم نعد بحاجة إلى trendsmcp أو غيرها
 
       - name: تشغيل سكربت التحديث
         env:
           CLIENT_SECRET_JSON_B64: ${{ secrets.CLIENT_SECRET_JSON_B64 }}
           TOKEN_PICKLE_B64: ${{ secrets.TOKEN_PICKLE_B64 }}
-          TRENDSMCP_API_KEY: ${{ secrets.TRENDSMCP_API_KEY }}
+          #ولم نعد بحاجة لمفتاح trendsmcp
         run: python update_tags.py
