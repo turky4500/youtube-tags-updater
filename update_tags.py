@@ -3,6 +3,7 @@ import base64
 import pickle
 import random
 import time
+import inspect  # جديد: لفحص تواقيع الدوال
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -16,42 +17,42 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 MAX_TAGS_PER_VIDEO = 10
 
 # ============================================
-# 🧠 دالة جلب الكلمات الرائجة (مع تشخيص TrendsSource)
+# 🧠 دالة جلب الكلمات الرائجة (مع تشخيص نهائي)
 # ============================================
 def get_trending_keywords():
     print("📈 جارٍ جلب الكلمات الرائجة من Trends MCP...")
     try:
-        from trendsmcp import TrendsMcpClient, GetTopTrendsParams, TrendsSource
+        from trendsmcp import TrendsMcpClient, GetTopTrendsParams
         
-        # طباعة جميع قيم TrendsSource لمعرفة الخيارات المتاحة
-        print("DEBUG: قيم TrendsSource المتاحة:")
-        for attr in dir(TrendsSource):
-            if not attr.startswith('_'):
-                print(f"  - {attr}: {getattr(TrendsSource, attr)}")
+        # طباعة توقيع GetTopTrendsParams لمعرفة اسماء الوسائط
+        print("DEBUG: توقيع GetTopTrendsParams:")
+        sig = inspect.signature(GetTopTrendsParams.__init__)
+        for name, param in sig.parameters.items():
+            if name != 'self':
+                print(f"  - {name}: type={param.annotation}, default={param.default}")
         
-        # محاولة تخمين القيمة الصحيحة بناءً على الأسماء الشائعة
-        source_value = None
-        possible_names = ['youtube', 'YOUTUBE', 'Youtube', 'yt', 'YT']
-        for name in possible_names:
-            if hasattr(TrendsSource, name):
-                source_value = getattr(TrendsSource, name)
-                print(f"DEBUG: تم العثور على القيمة المناسبة: TrendsSource.{name} = {source_value}")
-                break
+        # بناء params بناءً على الاسماء التي ستظهر
+        # سنحاول تخمين الاسم الصحيح بناءً على شيوع `source`, `query`, `term`, `keyword`, إلخ
+        params = None
+        param_names = [p for p in sig.parameters.keys() if p != 'self']
         
-        if source_value is None:
-            # إذا لم يتم العثور على أي اسم، استخدم القيمة الموجودة مباشرة
-            # قد تكون TrendsSource تحتوي على قيم رقمية أو غير ذلك
-            print("DEBUG: لم يتم العثور على اسم صريح لـ YouTube، سيتم استخدام TrendsSource مباشرة كقيمة نصية")
-            source_value = "youtube"  # محاولة بالقيمة النصية البسيطة
+        # محاولة أولى: إذا كان هناك وسيط اسمه 'query' أو 'keyword' أو 'term'
+        if 'query' in param_names:
+            params = GetTopTrendsParams(query='youtube', geo='SA', limit=20)
+        elif 'keyword' in param_names:
+            params = GetTopTrendsParams(keyword='youtube', geo='SA', limit=20)
+        elif 'term' in param_names:
+            params = GetTopTrendsParams(term='youtube', geo='SA', limit=20)
+        elif 'source' in param_names:
+            params = GetTopTrendsParams(source='youtube', geo='SA', limit=20)
+        else:
+            # طباعة رسالة للمساعدة
+            print("DEBUG: لم يتم التعرف على اسم وسيط المصدر. الأسماء المتاحة:")
+            for n in param_names:
+                print(f"  {n}")
+            raise ValueError("يجب تحديد اسم وسيط المصدر يدوياً")
         
         client = TrendsMcpClient(api_key=TRENDSMCP_API_KEY)
-        
-        params = GetTopTrendsParams(
-            source=source_value,
-            geo="SA",
-            limit=20
-        )
-        
         response = client.get_top_trends(params)
         print(f"DEBUG: نوع الرد: {type(response)}")
         print(f"DEBUG: محتوى الرد: {response}")
@@ -91,6 +92,10 @@ def get_trending_keywords():
             "ديكور", "أثاث", "تنظيف", "تنظيم"
         ]
         return random.sample(fallback, min(20, len(fallback)))
+
+# باقي الدوال (دالة المصادقة، جلب الفيديوهات، تحديث الكلمات) دون تغيير
+# ... (أنقلها كما هي من الكود السابق)
+# سأضع كود الدوال الكامل ليكون الملف مكتملاً
 
 # ============================================
 # 🔐 دالة المصادقة
