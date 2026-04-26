@@ -21,6 +21,9 @@ jobs:
       - name: تثبيت المكتبات
         run: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client trendsmcp
 
+      - name: فحص محتويات مكتبة trendsmcp
+        run: python -c "import trendsmcp; print('\n=== محتويات trendsmcp ==='); print(dir(trendsmcp)); print('\n=== محاولة استيراد Client ==='); from trendsmcp import Client; print('نجح استيراد Client'); print(dir(Client))"
+
       - name: تشغيل سكربت التحديث
         env:
           CLIENT_SECRET_JSON_B64: ${{ secrets.CLIENT_SECRET_JSON_B64 }}
