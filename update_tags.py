@@ -3,7 +3,8 @@ import base64
 import pickle
 import random
 import time
-import inspect  # جديد: لفحص تواقيع الدوال
+import urllib.request
+import xml.etree.ElementTree as ET
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -12,90 +13,55 @@ from googleapiclient.errors import HttpError
 # الإعدادات الأساسية
 CLIENT_SECRET_JSON_B64 = os.environ.get("CLIENT_SECRET_JSON_B64")
 TOKEN_PICKLE_B64 = os.environ.get("TOKEN_PICKLE_B64")
-TRENDSMCP_API_KEY = os.environ.get("TRENDSMCP_API_KEY")
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 MAX_TAGS_PER_VIDEO = 10
 
 # ============================================
-# 🧠 دالة جلب الكلمات الرائجة (مع تشخيص نهائي)
+# 🧠 دالة جلب الكلمات الرائجة من Google Trends RSS
 # ============================================
 def get_trending_keywords():
-    print("📈 جارٍ جلب الكلمات الرائجة من Trends MCP...")
+    print("📈 جارٍ جلب الكلمات الرائجة من Google Trends RSS...")
     try:
-        from trendsmcp import TrendsMcpClient, GetTopTrendsParams
+        # رابط RSS الرسمي للترند في السعودية
+        rss_url = "https://trends.google.com/trending/rss?geo=SA"
         
-        # طباعة توقيع GetTopTrendsParams لمعرفة اسماء الوسائط
-        print("DEBUG: توقيع GetTopTrendsParams:")
-        sig = inspect.signature(GetTopTrendsParams.__init__)
-        for name, param in sig.parameters.items():
-            if name != 'self':
-                print(f"  - {name}: type={param.annotation}, default={param.default}")
+        # طلب البيانات من الرابط
+        with urllib.request.urlopen(rss_url) as response:
+            rss_data = response.read().decode('utf-8')
         
-        # بناء params بناءً على الاسماء التي ستظهر
-        # سنحاول تخمين الاسم الصحيح بناءً على شيوع `source`, `query`, `term`, `keyword`, إلخ
-        params = None
-        param_names = [p for p in sig.parameters.keys() if p != 'self']
+        # تحليل بيانات RSS
+        root = ET.fromstring(rss_data)
         
-        # محاولة أولى: إذا كان هناك وسيط اسمه 'query' أو 'keyword' أو 'term'
-        if 'query' in param_names:
-            params = GetTopTrendsParams(query='youtube', geo='SA', limit=20)
-        elif 'keyword' in param_names:
-            params = GetTopTrendsParams(keyword='youtube', geo='SA', limit=20)
-        elif 'term' in param_names:
-            params = GetTopTrendsParams(term='youtube', geo='SA', limit=20)
-        elif 'source' in param_names:
-            params = GetTopTrendsParams(source='youtube', geo='SA', limit=20)
+        # استخراج العناوين
+        keywords = []
+        for item in root.findall('.//item/title'):
+            title_text = item.text.strip()
+            if title_text:
+                keywords.append(title_text)
+        
+        if keywords:
+            print(f"✅ تم جلب {len(keywords)} كلمة رائجة من السعودية.")
+            return keywords
         else:
-            # طباعة رسالة للمساعدة
-            print("DEBUG: لم يتم التعرف على اسم وسيط المصدر. الأسماء المتاحة:")
-            for n in param_names:
-                print(f"  {n}")
-            raise ValueError("يجب تحديد اسم وسيط المصدر يدوياً")
-        
-        client = TrendsMcpClient(api_key=TRENDSMCP_API_KEY)
-        response = client.get_top_trends(params)
-        print(f"DEBUG: نوع الرد: {type(response)}")
-        print(f"DEBUG: محتوى الرد: {response}")
-        
-        if response and hasattr(response, 'data') and response.data:
-            keywords = [item.term for item in response.data if hasattr(item, 'term') and item.term]
-            if keywords:
-                print(f"✅ تم جلب {len(keywords)} كلمة رائجة من YouTube السعودية.")
-                return keywords
-        
-        raise ValueError("لم يتم العثور على كلمات في الرد")
-        
+            raise ValueError("لم يتم العثور على أي كلمة رائجة في الـ RSS")
+            
     except Exception as e:
         print(f"⚠️ خطأ أثناء جلب الكلمات الرائجة: {e}")
         print("🔁 سيتم استخدام قائمة احتياطية ديناميكية.")
         fallback = [
             "تقنية", "ذكاء اصطناعي", "ألعاب", "يوتيوب", "تيك توك",
             "كرة قدم", "مسلسلات", "أفلام", "تسويق", "استثمار",
-            "عملات رقمية", "بيتكوين", "أسهم", "تعليم", "جامعة",
-            "منح دراسية", "لغات", "إنجليزي", "صحة", "رياضة",
-            "طبخ", "وصفات", "سيارات", "سفر", "سياحة", "أخبار",
-            "سياسة", "اقتصاد", "تاريخ", "علوم", "فضاء", "كتب",
-            "قراءة", "روايات", "شعر", "فن", "رسم", "موسيقى",
-            "موضة", "مكياج", "عناية بالبشرة", "لياقة", "تغذية",
-            "حيوانات", "طبيعة", "بحر", "جبال", "غابات", "تكنولوجيا",
-            "روبوتات", "واقع افتراضي", "بلوك تشين", "تطبيقات",
-            "جوجل", "مايكروسوفت", "آبل", "سامسونج", "هواوي",
-            "العمل الحر", "ربح من الإنترنت", "تجارة إلكترونية",
-            "مهارات", "تنمية بشرية", "تحفيز", "إدارة وقت", "إنتاجية",
-            "تصوير", "كاميرات", "فيديو", "بث مباشر", "ستريمر",
-            "قيمر", "شروحات", "مراجعات", "نصائح", "حيل",
-            "خدع", "تجارب", "تحليل", "مقابلات", "بودكاست",
-            "قصص", "حكايات", "طرائف", "تحديات", "مسابقات",
-            "تبرعات", "خير", "تطوع", "بيئة", "مناخ",
-            "طاقة متجددة", "كهرباء", "إلكترونيات", "أدوات",
-            "بناء", "نجارة", "زراعة", "حدائق", "أزهار",
-            "ديكور", "أثاث", "تنظيف", "تنظيم"
+            "عملات رقمية", "أسهم", "تعليم", "جامعة", "صحة",
+            "رياضة", "طبخ", "سيارات", "سفر", "سياحة",
+            "تاريخ", "علوم", "فضاء", "كتب", "فن",
+            "موضة", "مكياج", "لياقة", "تغذية", "حيوانات",
+            "روبوتات", "تطبيقات", "جوجل", "آبل", "سامسونج",
+            "ربح من الإنترنت", "تجارة إلكترونية", "مهارات", "إنتاجية", "تصوير",
+            "فيديو", "بث مباشر", "شروحات", "مراجعات", "نصائح",
+            "تجارب", "تحليل", "بودكاست", "قصص", "تحديات",
+            "بيئة", "مناخ", "طاقة", "ديكور", "تنظيم"
         ]
         return random.sample(fallback, min(20, len(fallback)))
-
-# باقي الدوال (دالة المصادقة، جلب الفيديوهات، تحديث الكلمات) دون تغيير
-# ... (أنقلها كما هي من الكود السابق)
-# سأضع كود الدوال الكامل ليكون الملف مكتملاً
 
 # ============================================
 # 🔐 دالة المصادقة
