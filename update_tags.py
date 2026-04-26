@@ -11,7 +11,7 @@ from googleapiclient.errors import HttpError
 # الإعدادات الأساسية
 CLIENT_SECRET_JSON_B64 = os.environ.get("CLIENT_SECRET_JSON_B64")
 TOKEN_PICKLE_B64 = os.environ.get("TOKEN_PICKLE_B64")
-TRENDSMCP_API_KEY = os.environ.get("TRENDSMCP_API_KEY")  # مفتاح Trends MCP
+TRENDSMCP_API_KEY = os.environ.get("TRENDSMCP_API_KEY")
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 MAX_TAGS_PER_VIDEO = 10
 
@@ -21,21 +21,32 @@ MAX_TAGS_PER_VIDEO = 10
 def get_trending_keywords():
     print("📈 جارٍ جلب الكلمات الرائجة من Trends MCP...")
     try:
-        from trendsmcp import TrendsMCP
-        # إنشاء عميل وإخباره أننا نريد ترندات YouTube في السعودية
-        client = TrendsMCP(api_key=TRENDSMCP_API_KEY)
-        # نطلب مصطلحات البحث الرائجة على YouTube في السعودية
-        trends = client.search_terms(
-            source="youtube",
-            geo="SA",           # السعودية
-            limit=20            # عدد الكلمات التي نريدها
+        # استيراد الكلاس الصحيح من نتائج الفحص
+        from trendsmcp import TrendsMcpClient
+        
+        # إنشاء العميل
+        client = TrendsMcpClient(api_key=TRENDSMCP_API_KEY)
+        
+        # جلب أعلى الترندات (GetTopTrends) من يوتيوب في السعودية
+        # نستخدم الكائنات التي وجدناها في الفحص: GetTopTrendsParams
+        from trendsmcp import GetTopTrendsParams, TrendsSource
+        
+        params = GetTopTrendsParams(
+            source=TrendsSource.YOUTUBE,  # نحدد المصدر: يوتيوب
+            geo="SA",                     # المنطقة: السعودية
+            limit=20                      # عدد الكلمات
         )
-        if trends and len(trends) > 0:
-            keywords = [item.get('term', '') for item in trends if item.get('term')]
-            print(f"✅ تم جلب {len(keywords)} كلمة رائجة من YouTube السعودية.")
-            return keywords
-        else:
-            raise ValueError("لم يتم جلب أي نتائج من Trends MCP")
+        
+        response = client.get_top_trends(params)
+        
+        if response and hasattr(response, 'data') and response.data:
+            keywords = [item.term for item in response.data if hasattr(item, 'term') and item.term]
+            if keywords:
+                print(f"✅ تم جلب {len(keywords)} كلمة رائجة من YouTube السعودية.")
+                return keywords
+        
+        raise ValueError("لم يتم العثور على كلمات في الرد")
+        
     except Exception as e:
         print(f"⚠️ خطأ أثناء جلب الكلمات الرائجة: {e}")
         print("🔁 سيتم استخدام قائمة احتياطية ديناميكية.")
