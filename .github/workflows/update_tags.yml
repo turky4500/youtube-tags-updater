@@ -2,7 +2,7 @@ name: Update YouTube Tags Daily
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *'  # كل يوم منتصف الليل UTC
   workflow_dispatch:
 
 jobs:
@@ -19,10 +19,11 @@ jobs:
           python-version: '3.11'
 
       - name: تثبيت المكتبات
-        run: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client
+        run: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client trendsmcp
 
       - name: تشغيل سكربت التحديث
         env:
           CLIENT_SECRET_JSON_B64: ${{ secrets.CLIENT_SECRET_JSON_B64 }}
           TOKEN_PICKLE_B64: ${{ secrets.TOKEN_PICKLE_B64 }}
+          TRENDSMCP_API_KEY: ${{ secrets.TRENDSMCP_API_KEY }}
         run: python update_tags.py
