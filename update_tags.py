@@ -16,28 +16,28 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 MAX_TAGS_PER_VIDEO = 10
 
 # ============================================
-# 🧠 دالة جلب الكلمات الرائجة من Trends MCP
+# 🧠 دالة جلب الكلمات الرائجة (مع تشخيص داخلي)
 # ============================================
 def get_trending_keywords():
     print("📈 جارٍ جلب الكلمات الرائجة من Trends MCP...")
     try:
-        # استيراد الكلاس الصحيح من نتائج الفحص
-        from trendsmcp import TrendsMcpClient
+        from trendsmcp import TrendsMcpClient, GetTopTrendsParams, TrendsSource
         
-        # إنشاء العميل
         client = TrendsMcpClient(api_key=TRENDSMCP_API_KEY)
         
-        # جلب أعلى الترندات (GetTopTrends) من يوتيوب في السعودية
-        # نستخدم الكائنات التي وجدناها في الفحص: GetTopTrendsParams
-        from trendsmcp import GetTopTrendsParams, TrendsSource
+        # طباعة قيم الكائنات للتأكد
+        print(f"DEBUG: TrendsSource.YOUTUBE = {TrendsSource.YOUTUBE}")
+        print(f"DEBUG: نوع GetTopTrendsParams = {GetTopTrendsParams}")
         
         params = GetTopTrendsParams(
-            source=TrendsSource.YOUTUBE,  # نحدد المصدر: يوتيوب
-            geo="SA",                     # المنطقة: السعودية
-            limit=20                      # عدد الكلمات
+            source=TrendsSource.YOUTUBE,
+            geo="SA",
+            limit=20
         )
         
         response = client.get_top_trends(params)
+        print(f"DEBUG: نوع الرد: {type(response)}")
+        print(f"DEBUG: محتوى الرد: {response}")
         
         if response and hasattr(response, 'data') and response.data:
             keywords = [item.term for item in response.data if hasattr(item, 'term') and item.term]
@@ -50,7 +50,6 @@ def get_trending_keywords():
     except Exception as e:
         print(f"⚠️ خطأ أثناء جلب الكلمات الرائجة: {e}")
         print("🔁 سيتم استخدام قائمة احتياطية ديناميكية.")
-        # قائمة احتياطية واسعة
         fallback = [
             "تقنية", "ذكاء اصطناعي", "ألعاب", "يوتيوب", "تيك توك",
             "كرة قدم", "مسلسلات", "أفلام", "تسويق", "استثمار",
@@ -153,7 +152,6 @@ def update_video_tags(youtube, video_id, video_title, new_tags):
 def main():
     print("🚀 بدء سكربت تحديث الكلمات المفتاحية - وضع الترند")
 
-    # جلب الكلمات الرائجة الحقيقية
     trending_keywords = get_trending_keywords()
     final_tags = random.sample(trending_keywords, min(len(trending_keywords), MAX_TAGS_PER_VIDEO))
     print(f"📝 الكلمات المفتاحية الجديدة: {final_tags}")
