@@ -16,21 +16,38 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 MAX_TAGS_PER_VIDEO = 10
 
 # ============================================
-# 🧠 دالة جلب الكلمات الرائجة (مع تشخيص داخلي)
+# 🧠 دالة جلب الكلمات الرائجة (مع تشخيص TrendsSource)
 # ============================================
 def get_trending_keywords():
     print("📈 جارٍ جلب الكلمات الرائجة من Trends MCP...")
     try:
         from trendsmcp import TrendsMcpClient, GetTopTrendsParams, TrendsSource
         
+        # طباعة جميع قيم TrendsSource لمعرفة الخيارات المتاحة
+        print("DEBUG: قيم TrendsSource المتاحة:")
+        for attr in dir(TrendsSource):
+            if not attr.startswith('_'):
+                print(f"  - {attr}: {getattr(TrendsSource, attr)}")
+        
+        # محاولة تخمين القيمة الصحيحة بناءً على الأسماء الشائعة
+        source_value = None
+        possible_names = ['youtube', 'YOUTUBE', 'Youtube', 'yt', 'YT']
+        for name in possible_names:
+            if hasattr(TrendsSource, name):
+                source_value = getattr(TrendsSource, name)
+                print(f"DEBUG: تم العثور على القيمة المناسبة: TrendsSource.{name} = {source_value}")
+                break
+        
+        if source_value is None:
+            # إذا لم يتم العثور على أي اسم، استخدم القيمة الموجودة مباشرة
+            # قد تكون TrendsSource تحتوي على قيم رقمية أو غير ذلك
+            print("DEBUG: لم يتم العثور على اسم صريح لـ YouTube، سيتم استخدام TrendsSource مباشرة كقيمة نصية")
+            source_value = "youtube"  # محاولة بالقيمة النصية البسيطة
+        
         client = TrendsMcpClient(api_key=TRENDSMCP_API_KEY)
         
-        # طباعة قيم الكائنات للتأكد
-        print(f"DEBUG: TrendsSource.YOUTUBE = {TrendsSource.YOUTUBE}")
-        print(f"DEBUG: نوع GetTopTrendsParams = {GetTopTrendsParams}")
-        
         params = GetTopTrendsParams(
-            source=TrendsSource.YOUTUBE,
+            source=source_value,
             geo="SA",
             limit=20
         )
