@@ -1,162 +1,115 @@
-import os
-import base64
-import pickle
-import random
-import time
-import urllib.request
-import xml.etree.ElementTree as ET
+import os, base64, pickle, random, time, re
+import urllib.request, xml.etree.ElementTree as ET
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-# الإعدادات الأساسية
 CLIENT_SECRET_JSON_B64 = os.environ.get("CLIENT_SECRET_JSON_B64")
 TOKEN_PICKLE_B64 = os.environ.get("TOKEN_PICKLE_B64")
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
-MAX_TAGS_PER_VIDEO = 10
+MAX_TAGS_PER_VIDEO = 15 # زدنا العدد
+MAX_VIDEOS_PER_RUN = 10 # عشان الكوتا ما تخلص
 
-# ============================================
-# 🧠 دالة جلب الكلمات الرائجة من Google Trends RSS
-# ============================================
 def get_trending_keywords():
-    print("📈 جارٍ جلب الكلمات الرائجة من Google Trends RSS...")
+    """نجيب ترند السعودية + الكلمات المتعلقة فيه"""
+    print("📈 جارٍ جلب الكلمات الرائجة + المتعلقة...")
     try:
-        # رابط RSS الرسمي للترند في السعودية
         rss_url = "https://trends.google.com/trending/rss?geo=SA"
-        
-        # طلب البيانات من الرابط
         with urllib.request.urlopen(rss_url) as response:
             rss_data = response.read().decode('utf-8')
-        
-        # تحليل بيانات RSS
         root = ET.fromstring(rss_data)
-        
-        # استخراج العناوين
         keywords = []
-        for item in root.findall('.//item/title'):
-            title_text = item.text.strip()
-            if title_text:
-                keywords.append(title_text)
-        
-        if keywords:
-            print(f"✅ تم جلب {len(keywords)} كلمة رائجة من السعودية.")
-            return keywords
-        else:
-            raise ValueError("لم يتم العثور على أي كلمة رائجة في الـ RSS")
-            
-    except Exception as e:
-        print(f"⚠️ خطأ أثناء جلب الكلمات الرائجة: {e}")
-        print("🔁 سيتم استخدام قائمة احتياطية ديناميكية.")
-        fallback = [
-            "تقنية", "ذكاء اصطناعي", "ألعاب", "يوتيوب", "تيك توك",
-            "كرة قدم", "مسلسلات", "أفلام", "تسويق", "استثمار",
-            "عملات رقمية", "أسهم", "تعليم", "جامعة", "صحة",
-            "رياضة", "طبخ", "سيارات", "سفر", "سياحة",
-            "تاريخ", "علوم", "فضاء", "كتب", "فن",
-            "موضة", "مكياج", "لياقة", "تغذية", "حيوانات",
-            "روبوتات", "تطبيقات", "جوجل", "آبل", "سامسونج",
-            "ربح من الإنترنت", "تجارة إلكترونية", "مهارات", "إنتاجية", "تصوير",
-            "فيديو", "بث مباشر", "شروحات", "مراجعات", "نصائح",
-            "تجارب", "تحليل", "بودكاست", "قصص", "تحديات",
-            "بيئة", "مناخ", "طاقة", "ديكور", "تنظيم"
-        ]
-        return random.sample(fallback, min(20, len(fallback)))
+        # نجيب الترند + الوصف حقه لأن الوصف فيه كلمات بحث
+        for item in root.findall('.//item'):
+            title = item.find('title').text.strip()
+            desc = item.find('description').text.strip()
+            keywords.append(title)
+            # نطلع كلمات من الوصف
+            keywords.extend(re.findall(r'[\u0600-\u06FF]+', desc)[:2])
 
-# ============================================
-# 🔐 دالة المصادقة
-# ============================================
+        # نشيل المكرر ونرجع أهم 20
+        return list(dict.fromkeys(keywords))[:20]
+    except Exception as e:
+        print(f"⚠️ خطأ: {e}")
+        return ["السعودية", "ترند", "جديد", "2026"]
+
 def get_authenticated_service():
-    if not TOKEN_PICKLE_B64:
-        raise ValueError("TOKEN_PICKLE_B64 غير موجود")
     token_bytes = base64.b64decode(TOKEN_PICKLE_B64)
     credentials = pickle.loads(token_bytes)
     if credentials.expired and credentials.refresh_token:
-        print("🔄 جارٍ تجديد الجلسة تلقائياً...")
         credentials.refresh(Request())
-        print("✅ تم تجديد الجلسة بنجاح.")
     return build('youtube', 'v3', credentials=credentials)
 
-# ============================================
-# 📋 دالة جلب الفيديوهات
-# ============================================
-def get_all_channel_videos(youtube):
-    try:
-        request = youtube.channels().list(part="id", mine=True)
-        response = request.execute()
-        channel_id = response['items'][0]['id']
-        print(f"📺 معرف القناة: {channel_id}")
-    except HttpError as e:
-        print(f"❌ خطأ: {e}")
-        return []
+def get_recent_videos(youtube, max_results=10):
+    """نجيب آخر 10 فيديوهات بس، مو كل القناة"""
+    request = youtube.channels().list(part="contentDetails", mine=True)
+    response = request.execute()
+    uploads_id = response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+
+    request = youtube.playlistItems().list(
+        part="snippet", playlistId=uploads_id, maxResults=max_results
+    )
+    response = request.execute()
     videos = []
-    next_page_token = None
-    print("🔍 جارٍ جلب الفيديوهات...")
-    while True:
-        try:
-            search_request = youtube.search().list(
-                part="id,snippet", channelId=channel_id,
-                maxResults=50, pageToken=next_page_token, type="video"
-            )
-            search_response = search_request.execute()
-            for item in search_response.get('items', []):
-                video_id = item['id']['videoId']
-                video_title = item['snippet']['title']
-                videos.append((video_id, video_title))
-            next_page_token = search_response.get('nextPageToken')
-            if not next_page_token:
-                break
-            print(f"   📄 تم جلب {len(videos)} فيديو...")
-        except HttpError as e:
-            print(f"❌ خطأ: {e}")
-            break
-    print(f"🎉 إجمالي الفيديوهات: {len(videos)}")
+    for item in response['items']:
+        vid = item['snippet']['resourceId']['videoId']
+        title = item['snippet']['title']
+        videos.append((vid, title))
     return videos
 
-# ============================================
-# ✍️ دالة تحديث الكلمات
-# ============================================
-def update_video_tags(youtube, video_id, video_title, new_tags):
+def smart_tag_selection(video_title, all_trends):
+    """نختار تاقات لها علاقة بعنوان الفيديو فقط"""
+    video_words = set(re.findall(r'[\u0600-\u06FF\w]+', video_title.lower()))
+    related_tags = []
+
+    for trend in all_trends:
+        trend_words = set(re.findall(r'[\u0600-\u06FF\w]+', trend.lower()))
+        # لو فيه كلمة مشتركة بين العنوان والترند، نضيفه
+        if video_words & trend_words:
+            related_tags.append(trend)
+
+    # لو ما لقينا علاقة، نحط 3 ترندات عامة بس
+    if not related_tags:
+        related_tags = random.sample(all_trends, min(3, len(all_trends)))
+
+    return related_tags[:MAX_TAGS_PER_VIDEO]
+
+def update_video(youtube, video_id, video_title, new_tags):
     try:
-        video_request = youtube.videos().list(part="snippet", id=video_id)
-        video_response = video_request.execute()
-        if not video_response['items']:
-            return False
-        snippet = video_response['items'][0]['snippet']
-        snippet['tags'] = new_tags
-        update_request = youtube.videos().update(
-            part="snippet", body={"id": video_id, "snippet": snippet}
-        )
-        update_request.execute()
-        print(f"   ✅ تم تحديث: {video_title[:50]}...")
+        req = youtube.videos().list(part="snippet", id=video_id)
+        res = req.execute()
+        if not res['items']: return False
+
+        snippet = res['items'][0]['snippet']
+        old_tags = snippet.get('tags', [])
+
+        # ندمج القديم مع الجديد ونشيل المكرر
+        final_tags = list(dict.fromkeys(old_tags + new_tags))[:MAX_TAGS_PER_VIDEO]
+        snippet['tags'] = final_tags
+
+        # 🔥 الحركة المهمة: نضيف الترند لأول سطر بالوصف
+        if new_tags:
+            trend_line = f"#{new_tags[0]} | "
+            if not snippet['description'].startswith(trend_line):
+                snippet['description'] = trend_line + snippet['description']
+
+        youtube.videos().update(part="snippet", body={"id": video_id, "snippet": snippet}).execute()
+        print(f"✅ {video_title[:30]}... | تاقات: {final_tags[:3]}...")
         return True
     except HttpError as e:
-        print(f"   ❌ فشل: {e}")
+        print(f"❌ خطأ: {e}")
         return False
 
-# ============================================
-# 🚀 الدالة الرئيسية
-# ============================================
-def main():
-    print("🚀 بدء سكربت تحديث الكلمات المفتاحية - وضع الترند")
-
-    trending_keywords = get_trending_keywords()
-    final_tags = random.sample(trending_keywords, min(len(trending_keywords), MAX_TAGS_PER_VIDEO))
-    print(f"📝 الكلمات المفتاحية الجديدة: {final_tags}")
-
-    youtube = get_authenticated_service()
-    videos = get_all_channel_videos(youtube)
-    if not videos:
-        return
-
-    success = 0
-    for idx, (vid, title) in enumerate(videos, 1):
-        print(f"[{idx}/{len(videos)}] {vid}")
-        if update_video_tags(youtube, vid, title, final_tags):
-            success += 1
-        time.sleep(0.5)
-
-    print(f"📊 تم تحديث {success} من {len(videos)} فيديو بنجاح.")
-
 if __name__ == "__main__":
-    main()
+    yt = get_authenticated_service()
+    trends = get_trending_keywords()
+    videos = get_recent_videos(yt, MAX_VIDEOS_PER_RUN)
+
+    print(f"🎯 بنحدث {len(videos)} فيديو بـ {len(trends)} ترند")
+
+    for vid, title in videos:
+        tags = smart_tag_selection(title, trends)
+        if tags:
+            update_video(yt, vid, title, tags)
+            time.sleep(2) # عشان ما ننحظر
