@@ -107,7 +107,7 @@ def update_video(youtube, video_id, video_title, new_tags):
         old_desc = snippet.get('description', '')
         snippet['tags'] = new_tags
         if new_tags:
-            today_str = datetime.now().strftime("%m-%d") # نخليه مختصر
+            today_str = datetime.now().strftime("%m-%d")
             trend_hashtag = " ".join([f"#{tag.replace(' ', '_')}" for tag in new_tags[:3]])
             new_first_line = f"{trend_hashtag} | تحديث {today_str}\n\n"
             desc_lines = old_desc.split('\n')
@@ -115,7 +115,7 @@ def update_video(youtube, video_id, video_title, new_tags):
                 old_desc = '\n'.join(desc_lines[3:])
             snippet['description'] = new_first_line + old_desc
         youtube.videos().update(part="snippet", body={"id": video_id, "snippet": snippet}).execute()
-        return True, f"✅ {video_title[:30]} | تاقات: {new_tags[:3]}"
+        return True, f"✅ {video_title[:35]} | تاقات: {new_tags[:3]}"
     except HttpError as e:
         return False, f"❌ خطأ: {e}"
 
@@ -125,6 +125,9 @@ if __name__ == "__main__":
     trends = get_trending_keywords()
     update_log = load_update_log()
     videos = get_videos_to_update(yt, update_log)
+
+    print(f"🔍 لقينا {len(videos)} فيديو يحتاج تحديث")
+
     if not videos:
         print("✅ كل الفيديوهات محدثة آخر 7 أيام")
     else:
@@ -136,5 +139,5 @@ if __name__ == "__main__":
             if success:
                 update_log[vid] = datetime.now().isoformat()
                 save_update_log(update_log)
-            time.sleep(3) # راحة 3 ثواني بين كل فيديو
+            time.sleep(3)
     print("🎉 انتهى التشغيل")
