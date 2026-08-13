@@ -1,16 +1,28 @@
-name: Update YouTube Tags (smart)
+name: YouTube Comprehensive Optimizer
 
 on:
   schedule:
-    - cron: '0 2 * * 1'   # كل إثنين 02:00 UTC (أسبوعياً بدل يومي)
+    - cron: '0 2 * * *'   # يومياً 02:00 UTC = 05:00 صباحاً بتوقيت الرياض
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'تجربة بدون تعديل الفيديوهات'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
+concurrency:
+  group: youtube-comprehensive-optimizer
+  cancel-in-progress: false
+
 jobs:
-  update-tags:
+  optimize-videos:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
       - name: استنساخ المستودع
         uses: actions/checkout@v4
@@ -21,22 +33,20 @@ jobs:
           python-version: '3.11'
 
       - name: تثبيت المكتبات
-        run: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client
+        run: pip install google-auth google-api-python-client
 
-      - name: تشغيل سكربت التحديث
+      - name: تحسين 3 فيديوهات
         env:
           CLIENT_SECRET_JSON_B64: ${{ secrets.CLIENT_SECRET_JSON_B64 }}
           TOKEN_PICKLE_B64: ${{ secrets.TOKEN_PICKLE_B64 }}
-          # للتجربة بدون تغيير حقيقي، أزل التعليق عن السطر التالي:
-          # DRY_RUN: "1"
-          # لتفعيل إضافة الهاشتاقات إلى الوصف:
-          # ADD_HASHTAGS: "1"
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
         run: python update_tags.py
 
       - name: حفظ السجلات
+        if: ${{ !inputs.dry_run }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add update_log.json change_log.json
-          git diff --staged --quiet || git commit -m "تحديث السجلات"
+          git diff --staged --quiet || git commit -m "تحديث سجل التحسين الشامل"
           git push

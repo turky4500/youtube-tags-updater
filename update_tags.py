@@ -1,287 +1,439 @@
 import os, base64, pickle, re, json, time
-import urllib.request, urllib.parse, xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
+import urllib.request, urllib.parse
+from datetime import datetime, timedelta, timezone
 from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # ============ الإعدادات ============
 CLIENT_SECRET_JSON_B64 = os.environ.get("CLIENT_SECRET_JSON_B64")
 TOKEN_PICKLE_B64 = os.environ.get("TOKEN_PICKLE_B64")
-SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 MAX_TAGS_PER_VIDEO = 12
 MAX_VIDEOS_PER_RUN = 3
-DAYS_BETWEEN_UPDATES = 30     # لا نعيد تعديل فيديو قبل 30 يوم
-MIN_TAGS_TO_SKIP = 8          # نترك الفيديو إذا كانت وسومه كافية
+HASHTAGS_PER_VIDEO = 5
+DAYS_BETWEEN_UPDATES = 30
+OPTIMIZER_VERSION = 3
 DRY_RUN = os.environ.get("DRY_RUN", "0") == "1"
-ADD_HASHTAGS = os.environ.get("ADD_HASHTAGS", "0") == "1"  # معطّل افتراضياً
 
-LOG_FILE = 'update_log.json'
-CHANGE_LOG_FILE = 'change_log.json'
+LOG_FILE = "update_log.json"
+CHANGE_LOG_FILE = "change_log.json"
+DESCRIPTION_CTA = "إذا أعجبك الفيديو، شاركنا رأيك في التعليقات واشترك في القناة لمتابعة المزيد."
 
-ARABIC_CHARS = re.compile(r'[\u0600-\u06FF]')
-
-# كلمات شائعة لا تضيف قيمة كوسوم
 STOPWORDS = {
-    'في', 'على', 'الى', 'إلى', 'من', 'عن', 'ان', 'أن', 'إن', 'هذا', 'هذه',
-    'ذلك', 'التي', 'الذي', 'ما', 'لا', 'لم', 'لن', 'هو', 'هي', 'كل', 'كان',
-    'كانت', 'مع', 'عند', 'بعد', 'قبل', 'حتى', 'اذا', 'إذا', 'ثم', 'او', 'أو',
-    'يا', 'فيه', 'فيها', 'عليه', 'عليها', 'وال', 'عربي', 'يوتيوب', 'فيديو',
-    'مقطع', 'مقاطع', 'قناة', 'اشترك', 'لايك', 'شكرا', 'جديد', 'اليوم', 'طريقة',
-    'أفضل', 'افضل', 'شرح', 'كيف', 'ما', 'سو', 'و'
+    "في", "على", "الى", "إلى", "من", "عن", "ان", "أن", "إن", "هذا", "هذه",
+    "ذلك", "التي", "الذي", "ما", "لا", "لم", "لن", "هو", "هي", "كل", "كان",
+    "كانت", "مع", "عند", "بعد", "قبل", "حتى", "اذا", "إذا", "ثم", "او", "أو",
+    "يا", "فيه", "فيها", "عليه", "عليها", "وال", "يوتيوب", "فيديو", "مقطع",
+    "مقاطع", "قناة", "اشترك", "لايك", "شكرا", "اليوم", "و"
 }
 
-# كلمات نستبعدها من الترندات (أخبار/رياضة لا تصلح كوسوم لمحتوى عام)
-BANNED_WORDS = [
-    'vs', 'espanyol', 'levante', 'lazio', 'udinese', 'fc', 'match', 'game',
-    'champions', 'league', 'مباراة', 'نادي', 'هداف', 'دوري', 'بث مباشر',
-    'أخبار', 'عاجل', 'وفاة', 'توفي', 'حادث'
-]
+BANNED_WORDS = {
+    "vs", "espanyol", "levante", "lazio", "udinese", "fc", "match", "game",
+    "champions", "league", "مباراة", "نادي", "هداف", "دوري", "بث مباشر",
+    "أخبار", "عاجل", "وفاة", "توفي", "حادث"
+}
 
 
 def get_authenticated_service():
-    token_bytes = base64.b64decode(TOKEN_PICKLE_B64)
-    credentials = pickle.loads(token_bytes)
+    if not TOKEN_PICKLE_B64:
+        raise RuntimeError("السر TOKEN_PICKLE_B64 غير موجود")
+    try:
+        token_bytes = base64.b64decode(TOKEN_PICKLE_B64)
+        credentials = pickle.loads(token_bytes)
+    except Exception as e:
+        raise RuntimeError("تعذّر قراءة بيانات اعتماد يوتيوب") from e
+
     if credentials.expired and credentials.refresh_token:
-        print("🔄 تجديد الجلسة...")
+        print("🔄 تجديد جلسة يوتيوب...")
         credentials.refresh(Request())
-    return build('youtube', 'v3', credentials=credentials)
+    return build("youtube", "v3", credentials=credentials)
 
 
-def extract_keywords(text, min_len=3):
-    """استخراج الكلمات المهمة (عربية/إنجليزية) مع استبعاد الكلمات الشائعة."""
+def normalize_for_match(text):
+    """توحيد بسيط للحروف العربية حتى تكون مقارنة الكلمات أدق."""
+    text = (text or "").lower()
+    text = re.sub(r"[\u064B-\u065F\u0670\u0640]", "", text)
+    return text.translate(str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ى": "ي"}))
+
+
+def extract_keywords(text):
     if not text:
         return []
-    words = re.findall(r'[a-zA-Z]{3,}|[\u0600-\u06FF]{3,}', text.lower())
-    return [w for w in words if w not in STOPWORDS]
+    words = re.findall(r"[a-zA-Z]{3,}|[\u0600-\u06FF]{2,}", text)
+    normalized_stopwords = {normalize_for_match(w) for w in STOPWORDS}
+    result = []
+    for word in words:
+        normalized = normalize_for_match(word)
+        if normalized and normalized not in normalized_stopwords:
+            result.append(word.strip())
+    return result
+
+
+def keyword_set(text):
+    return {normalize_for_match(w) for w in extract_keywords(text)}
+
+
+def contains_banned_words(text):
+    normalized = normalize_for_match(text)
+    return any(normalize_for_match(word) in normalized for word in BANNED_WORDS)
 
 
 def youtube_autocomplete(query):
-    """اقتراحات يوتيوب الحقيقية = ما يبحث عنه الناس فعلاً حول الموضوع."""
+    """اقتراحات بحث يوتيوب الفعلية للسعودية."""
     url = (
         "https://suggestqueries.google.com/complete/search"
         "?client=firefox&ds=yt&hl=ar&gl=SA&q=" + urllib.parse.quote(query)
     )
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=10) as r:
-        data = json.loads(r.read().decode('utf-8'))
-    return data[1] if len(data) > 1 else []
+    with urllib.request.urlopen(req, timeout=10) as response:
+        data = json.loads(response.read().decode("utf-8"))
+    return data[1] if len(data) > 1 and isinstance(data[1], list) else []
 
 
-def get_trending_keywords():
-    """ترند السعودية — يُستخدم فقط كمرشح إضافي (لا يُضاف عشوائياً)."""
-    try:
-        rss_url = "https://trends.google.com/trending/rss?geo=SA"
-        with urllib.request.urlopen(rss_url, timeout=10) as response:
-            rss_data = response.read().decode('utf-8')
-        root = ET.fromstring(rss_data)
-        keywords = []
-        for item in root.findall('.//item'):
-            title_elem = item.find('title')
-            title = title_elem.text.strip() if title_elem is not None and title_elem.text else ""
-            if title and ARABIC_CHARS.search(title):
-                if not any(bad in title.lower() for bad in BANNED_WORDS):
-                    keywords.append(title)
-        return list(dict.fromkeys(keywords))[:20]
-    except Exception as e:
-        print(f"⚠️ خطأ بالترند: {e}")
-        return []
+def normalize_tag(tag):
+    tag = re.sub(r"\s+", " ", (tag or "").strip().strip("#")).strip()
+    if not tag or len(tag) > 100 or contains_banned_words(tag):
+        return ""
+    return tag
 
 
-def word_overlap(candidate, topic_words):
-    """هل يشترك النص المرشح بكلمة مع كلمات موضوع الفيديو؟"""
-    return bool(set(extract_keywords(candidate)) & topic_words)
+def suggestion_is_relevant(suggestion, title):
+    title_words = keyword_set(title)
+    suggestion_words = keyword_set(suggestion)
+    if not title_words or not suggestion_words or contains_banned_words(suggestion):
+        return False
+    overlap = title_words & suggestion_words
+    required = 1 if len(title_words) == 1 else 2
+    return len(overlap) >= min(required, len(title_words))
 
 
-def normalize_tag(t):
-    t = (t or '').strip().strip('#').strip()
-    t = re.sub(r'\s+', ' ', t)
-    if len(t) > 30:
-        t = t[:30].rstrip()
-    return t
+def get_relevant_suggestions(title):
+    """نجلب اقتراحات لعبارة العنوان، ولا نستخدم اقتراحات كلمة عامة منفردة."""
+    queries = [title.strip()]
+    title_keywords = extract_keywords(title)
+    if len(title_keywords) > 4:
+        queries.append(" ".join(title_keywords[:4]))
+    if len(title_keywords) == 1:
+        queries.append(title_keywords[0])
 
-
-def build_tags(youtube, title, description, existing_tags):
-    """
-    بناء الوسوم بالترتيب حسب الأولوية — كل شيء مرتبط بموضوع الفيديو فقط:
-    1) كلمات العنوان
-    2) اقتراحات بحث يوتيوب ذات الصلة
-    3) ترندات ذات صلة (تشترك بكلمة مع الموضوع)
-    4) الوسوم القديمة (نحتفظ بها)
-    لا نضيف أي وسم عشوائي غير ذي صلة إطلاقاً.
-    """
-    topic_words = set(extract_keywords(title + " " + description))
-    existing = [normalize_tag(t) for t in existing_tags]
-
-    # 1) كلمات العنوان
-    title_kws = extract_keywords(title)[:5]
-
-    # 2) اقتراحات يوتيوب حول أول كلمتين مهمتين من العنوان
     suggestions = []
-    for seed in extract_keywords(title)[:2]:
+    for query in dict.fromkeys(q for q in queries if q):
         try:
-            suggestions += youtube_autocomplete(seed)
-        except Exception:
-            pass
-    relevant_suggestions = [s for s in suggestions if word_overlap(s, topic_words)]
+            suggestions.extend(youtube_autocomplete(query))
+        except Exception as e:
+            print(f"⚠️ تعذّر جلب اقتراحات «{query[:30]}»: {e}")
 
-    # 3) ترندات ذات صلة فقط
-    trends = get_trending_keywords()
-    relevant_trends = [t for t in trends if word_overlap(t, topic_words)]
+    return [s for s in dict.fromkeys(suggestions) if suggestion_is_relevant(s, title)]
 
-    # 4) الدمج حسب الأولوية
+
+def build_tags(title, description, existing_tags):
+    """بناء علامات مرتبطة مباشرة بالعنوان والمحتوى، دون حشو عشوائي."""
+    title_phrase = normalize_tag(title)
+    title_keywords = [normalize_tag(w) for w in extract_keywords(title)]
+    suggestions = [normalize_tag(s) for s in get_relevant_suggestions(title)]
+
+    topic_words = keyword_set(title + " " + description)
+    relevant_existing = []
+    for tag in existing_tags or []:
+        cleaned = normalize_tag(tag)
+        if cleaned and keyword_set(cleaned) & topic_words:
+            relevant_existing.append(cleaned)
+
     final, seen = [], set()
-    for tag in title_kws + relevant_suggestions + relevant_trends + existing:
-        t = normalize_tag(tag)
-        if not t or t in seen:
+    for tag in [title_phrase] + suggestions + title_keywords + relevant_existing:
+        if not tag:
             continue
-        seen.add(t)
-        final.append(t)
+        key = normalize_for_match(tag)
+        if key in seen:
+            continue
+        seen.add(key)
+        final.append(tag)
 
-    # حد أقصى لعدد الوسوم + 500 حرف إجمالي
-    total, out = 0, []
-    for t in final[:MAX_TAGS_PER_VIDEO]:
-        if total + len(t) + 1 > 500:
+    output, total = [], 0
+    for tag in final:
+        extra = len(tag) + (1 if output else 0)
+        if len(output) >= MAX_TAGS_PER_VIDEO or total + extra > 500:
             break
-        out.append(t)
-        total += len(t) + 1
-    return out
+        output.append(tag)
+        total += extra
+    return output
 
 
-def get_videos_to_update(youtube, update_log):
-    """نختار الفيديوهات التي تحتاج تحسين وسوم فعلاً (الجديدة أو قليلة الوسوم)."""
-    req = youtube.channels().list(part="contentDetails", mine=True)
-    uploads_id = req.execute()['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+def hashtag_value(text):
+    text = normalize_tag(text)
+    if not text:
+        return ""
+    text = re.sub(r"[^a-zA-Z0-9_\u0600-\u06FF\s]", "", text)
+    text = re.sub(r"\s+", "_", text.strip())
+    if not text or len(text) > 60:
+        return ""
+    return "#" + text
 
-    items, page_token = [], None
-    while True:
-        r = youtube.playlistItems().list(
-            part="snippet", playlistId=uploads_id, maxResults=50, pageToken=page_token
-        ).execute()
-        for it in r['items']:
-            items.append({
-                'vid': it['snippet']['resourceId']['videoId'],
-                'title': it['snippet']['title'],
-                'published': it['snippet']['publishedAt'],
-            })
-        page_token = r.get('nextPageToken')
-        if not page_token:
+
+def build_hashtags(title, tags):
+    candidates = [title] + extract_keywords(title) + list(tags)
+    hashtags, seen = [], set()
+    for candidate in candidates:
+        hashtag = hashtag_value(candidate)
+        key = normalize_for_match(hashtag)
+        if not hashtag or key in seen:
+            continue
+        seen.add(key)
+        hashtags.append(hashtag)
+        if len(hashtags) >= HASHTAGS_PER_VIDEO:
             break
-
-    # جلب الوسوم والوصف الحالي دفعة واحدة (توفير للكوتا)
-    vids = [x['vid'] for x in items]
-    meta = {}
-    for i in range(0, len(vids), 50):
-        batch = vids[i:i + 50]
-        r = youtube.videos().list(part="snippet", id=",".join(batch)).execute()
-        for it in r.get('items', []):
-            meta[it['id']] = {
-                'tags': it['snippet'].get('tags', []),
-                'description': it['snippet'].get('description', ''),
-            }
-
-    today = datetime.now()
-    cutoff = today - timedelta(days=DAYS_BETWEEN_UPDATES)
-    candidates = []
-    for it in items:
-        vid = it['vid']
-        lu = update_log.get(vid)
-        if lu:
-            try:
-                if datetime.fromisoformat(lu) > cutoff:
-                    continue  # حُدّث مؤخراً
-            except Exception:
-                pass
-        m = meta.get(vid, {})
-        tags = m.get('tags', [])
-        if len(tags) >= MIN_TAGS_TO_SKIP:
-            continue  # الوسوم كافية، نتركه
-        candidates.append({
-            'vid': vid,
-            'title': it['title'],
-            'tags': tags,
-            'description': m.get('description', ''),
-            'published_dt': datetime.fromisoformat(it['published'].replace('Z', '+00:00')),
-        })
-
-    candidates.sort(key=lambda x: x['published_dt'], reverse=True)  # الأحدث أولاً
-    return candidates[:MAX_VIDEOS_PER_RUN]
+    return hashtags
 
 
-def update_video(youtube, video_id, title, new_tags):
-    try:
-        req = youtube.videos().list(part="snippet", id=video_id)
-        res = req.execute()
-        if not res['items']:
-            return False, "الفيديو غير موجود", None
-        snippet = res['items'][0]['snippet']
-        old_tags = snippet.get('tags', [])
-        snippet['tags'] = new_tags
+def is_hashtag_line(line):
+    parts = line.strip().split()
+    return bool(parts) and all(part.startswith("#") for part in parts)
 
-        if ADD_HASHTAGS and new_tags:
-            hashtags = " ".join(f"#{t.replace(' ', '_')}" for t in new_tags[:3])
-            old_desc = snippet.get('description', '')
-            lines = old_desc.split('\n')
-            if lines and lines[0].lstrip().startswith('#'):
-                old_desc = '\n'.join(lines[1:]).lstrip('\n')
-            snippet['description'] = f"{hashtags}\n\n{old_desc}"
 
-        youtube.videos().update(
-            part="snippet", body={"id": video_id, "snippet": snippet}
-        ).execute()
-        return True, f"✅ {title[:35]} | {len(old_tags)} → {len(new_tags)} وسماً", (old_tags, new_tags)
-    except HttpError as e:
-        return False, f"❌ خطأ: {e}", None
+def clean_existing_description(description, title):
+    """إزالة إضافات السكربت السابقة مع الحفاظ على أي معلومات أصلية مفيدة."""
+    text = (description or "").replace("\r\n", "\n").strip()
+    if not text:
+        return ""
+
+    # إزالة الجزء الآلي الذي أضافته هذه النسخة في تشغيل سابق.
+    if DESCRIPTION_CTA in text:
+        text = text.split(DESCRIPTION_CTA, 1)[0].rstrip()
+
+    lines = text.split("\n")
+    while lines and not lines[0].strip():
+        lines.pop(0)
+
+    # إزالة العنوان الذي وضعه السكربت في أول الوصف سابقاً.
+    if lines and normalize_for_match(lines[0].strip()) == normalize_for_match(title.strip()):
+        lines.pop(0)
+        while lines and not lines[0].strip():
+            lines.pop(0)
+
+    # إزالة سطر الهاشتاقات القديم من النسخة السابقة بأمان.
+    if lines and lines[0].lstrip().startswith("#"):
+        if "تحديث" in lines[0] or is_hashtag_line(lines[0]):
+            lines.pop(0)
+            while lines and not lines[0].strip():
+                lines.pop(0)
+
+    # إزالة أسطر الهاشتاقات القديمة الموجودة في نهاية الوصف.
+    while lines and (not lines[-1].strip() or is_hashtag_line(lines[-1])):
+        lines.pop()
+
+    return "\n".join(lines).strip()
+
+
+def build_description(title, existing_description, hashtags):
+    """إعادة تنظيم الوصف كاملاً مع نص واضح وخمسة هاشتاقات مرتبطة."""
+    body = clean_existing_description(existing_description, title)
+    if not body:
+        body = f"فيديو بعنوان «{title}» يقدم محتوى مرتبطًا بموضوع الفيديو بصورة واضحة ومباشرة."
+
+    hashtag_line = " ".join(hashtags)
+    fixed_parts = [title.strip(), DESCRIPTION_CTA, hashtag_line]
+    fixed_length = sum(len(part) for part in fixed_parts) + 4
+    max_body_length = max(0, 5000 - fixed_length)
+    if len(body) > max_body_length:
+        body = body[:max_body_length].rsplit("\n", 1)[0].rstrip() or body[:max_body_length].rstrip()
+
+    return "\n\n".join(part for part in [title.strip(), body, DESCRIPTION_CTA, hashtag_line] if part)
 
 
 def load_json(path):
     try:
-        with open(path, 'r') as f:
-            return json.load(f)
-    except Exception:
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+            return data if isinstance(data, dict) else {}
+    except FileNotFoundError:
         return {}
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"ملف السجل {path} تالف؛ أوقفنا التشغيل لحماية البيانات") from e
 
 
 def save_json(path, data):
-    with open(path, 'w') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    temporary = path + ".tmp"
+    with open(temporary, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
+    os.replace(temporary, path)
+
+
+def parse_datetime(value):
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except (TypeError, ValueError):
+        return None
+
+
+def get_videos_to_update(youtube, change_log):
+    """اختيار 3 فيديوهات يومياً، مع المرور على جميع فيديوهات القناة."""
+    channel_response = youtube.channels().list(part="contentDetails", mine=True).execute()
+    if not channel_response.get("items"):
+        raise RuntimeError("لم نجد قناة يوتيوب مرتبطة ببيانات الاعتماد")
+    uploads_id = channel_response["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
+    items, page_token = [], None
+    while True:
+        response = youtube.playlistItems().list(
+            part="snippet", playlistId=uploads_id, maxResults=50, pageToken=page_token
+        ).execute()
+        for item in response.get("items", []):
+            snippet = item["snippet"]
+            items.append({
+                "vid": snippet["resourceId"]["videoId"],
+                "title": snippet["title"],
+                "published": snippet["publishedAt"],
+            })
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            break
+
+    video_ids = [item["vid"] for item in items]
+    metadata = {}
+    for index in range(0, len(video_ids), 50):
+        batch = video_ids[index:index + 50]
+        response = youtube.videos().list(part="snippet", id=",".join(batch)).execute()
+        for item in response.get("items", []):
+            snippet = item["snippet"]
+            metadata[item["id"]] = {
+                "tags": snippet.get("tags", []),
+                "description": snippet.get("description", ""),
+            }
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=DAYS_BETWEEN_UPDATES)
+    candidates = []
+    for item in items:
+        meta = metadata.get(item["vid"])
+        if meta is None:
+            continue
+
+        record = change_log.get(item["vid"], {})
+        version = record.get("optimizer_version", 0) if isinstance(record, dict) else 0
+        last_updated = parse_datetime(record.get("last_updated_at")) if isinstance(record, dict) else None
+        already_current = version >= OPTIMIZER_VERSION
+        if already_current and last_updated and last_updated > cutoff:
+            continue
+
+        candidates.append({
+            **item,
+            **meta,
+            "published_dt": parse_datetime(item["published"]) or datetime.min.replace(tzinfo=timezone.utc),
+            "optimizer_version": version,
+            "last_optimized_dt": last_updated,
+        })
+
+    # غير المعالجة بهذه النسخة أولاً (الأحدث نشراً)، ثم الأقدم تحسيناً.
+    candidates.sort(
+        key=lambda item: (
+            0 if item["optimizer_version"] < OPTIMIZER_VERSION else 1,
+            -item["published_dt"].timestamp()
+            if item["optimizer_version"] < OPTIMIZER_VERSION
+            else (item["last_optimized_dt"] or datetime.min.replace(tzinfo=timezone.utc)).timestamp(),
+        )
+    )
+    return candidates[:MAX_VIDEOS_PER_RUN]
+
+
+def update_video(youtube, video_id, title, new_tags, new_description):
+    try:
+        response = youtube.videos().list(part="snippet", id=video_id).execute()
+        if not response.get("items"):
+            return False, "الفيديو غير موجود", None
+
+        snippet = response["items"][0]["snippet"]
+        old_tags = list(snippet.get("tags", []))
+        old_description = snippet.get("description", "")
+        changed = old_tags != new_tags or old_description != new_description
+
+        if changed:
+            snippet["tags"] = new_tags
+            snippet["description"] = new_description
+            youtube.videos().update(
+                part="snippet", body={"id": video_id, "snippet": snippet}
+            ).execute()
+
+        change = {
+            "old_tags": old_tags,
+            "new_tags": new_tags,
+            "description_changed": old_description != new_description,
+        }
+        status = "تم التحسين" if changed else "لا يحتاج تغييراً"
+        counts = f"العلامات: قبل {len(old_tags)} / بعد {len(new_tags)}"
+        return True, f"✅ {title[:35]} | {counts} | {status}", change
+    except HttpError as e:
+        return False, f"❌ خطأ YouTube API: {e}", None
+    except Exception as e:
+        return False, f"❌ خطأ غير متوقع: {e}", None
+
+
+def record_change(change_log, video, change, hashtags, updated_at):
+    old_record = change_log.get(video["vid"], {})
+    history = []
+    if isinstance(old_record, dict):
+        history = list(old_record.get("history", []))
+        if not history and old_record.get("updated_at"):
+            history.append({
+                "old_tags": old_record.get("old_tags", []),
+                "new_tags": old_record.get("new_tags", []),
+                "updated_at": old_record.get("updated_at"),
+                "optimizer_version": 2,
+            })
+
+    history.append({
+        **change,
+        "hashtags": hashtags,
+        "updated_at": updated_at,
+        "optimizer_version": OPTIMIZER_VERSION,
+    })
+    change_log[video["vid"]] = {
+        "title": video["title"],
+        "optimizer_version": OPTIMIZER_VERSION,
+        "last_updated_at": updated_at,
+        "history": history[-5:],
+    }
 
 
 if __name__ == "__main__":
     mode = "🧪 DRY-RUN" if DRY_RUN else "🚀 LIVE"
-    print(f"{mode} — تحديث الوسوم الذكي v2")
-    yt = get_authenticated_service()
+    print(f"{mode} — التحسين الشامل v{OPTIMIZER_VERSION} (علامات + وصف + هاشتاقات)")
+
+    youtube = get_authenticated_service()
     update_log = load_json(LOG_FILE)
     change_log = load_json(CHANGE_LOG_FILE)
-
-    videos = get_videos_to_update(yt, update_log)
-    print(f"🔍 {len(videos)} فيديو يحتاج تحسين وسوم")
+    videos = get_videos_to_update(youtube, change_log)
+    print(f"🔍 وجدنا {len(videos)} فيديو للتحسين اليوم")
 
     if not videos:
-        print("✅ لا شيء يحتاج تحديثاً — الوسوم سليمة")
-    for v in videos:
-        vid, title = v['vid'], v['title']
-        new_tags = build_tags(yt, title, v['description'], v['tags'])
+        print("✅ لا يوجد فيديو يحتاج تحسيناً الآن")
+
+    for video in videos:
+        tags = build_tags(video["title"], video["description"], video["tags"])
+        hashtags = build_hashtags(video["title"], tags)
+        description = build_description(video["title"], video["description"], hashtags)
 
         if DRY_RUN:
-            print(f"🧪 [DRY] {title[:40]}")
-            print(f"      {' | '.join(new_tags[:6])}")
+            print(f"🧪 {video['title'][:45]}")
+            print(f"   العلامات: {' | '.join(tags)}")
+            print(f"   الهاشتاقات: {' '.join(hashtags)}")
             continue
 
-        success, msg, change = update_video(yt, vid, title, new_tags)
-        print(msg)
-        update_log[vid] = datetime.now().isoformat()
-        if change:
-            change_log[vid] = {
-                "title": title,
-                "old_tags": change[0],
-                "new_tags": change[1],
-                "updated_at": datetime.now().isoformat(),
-            }
-        save_json(LOG_FILE, update_log)
-        save_json(CHANGE_LOG_FILE, change_log)
+        success, message, change = update_video(
+            youtube, video["vid"], video["title"], tags, description
+        )
+        print(message)
+        if success and change:
+            updated_at = datetime.now(timezone.utc).isoformat()
+            update_log[video["vid"]] = updated_at
+            record_change(change_log, video, change, hashtags, updated_at)
+            save_json(LOG_FILE, update_log)
+            save_json(CHANGE_LOG_FILE, change_log)
         time.sleep(3)
 
     print("🎉 انتهى التشغيل")
