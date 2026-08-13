@@ -1,22 +1,19 @@
-name: Update YouTube Tags Daily
+name: Update YouTube Tags (smart)
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # كل يوم منتصف الليل UTC
+    - cron: '0 2 * * 1'   # كل إثنين 02:00 UTC (أسبوعياً بدل يومي)
   workflow_dispatch:
 
 permissions:
-  contents: write   # ضروري للدفع للمستودع
+  contents: write
 
 jobs:
   update-tags:
     runs-on: ubuntu-latest
-
     steps:
       - name: استنساخ المستودع
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # للدفع لاحقاً
 
       - name: إعداد Python
         uses: actions/setup-python@v5
@@ -30,13 +27,16 @@ jobs:
         env:
           CLIENT_SECRET_JSON_B64: ${{ secrets.CLIENT_SECRET_JSON_B64 }}
           TOKEN_PICKLE_B64: ${{ secrets.TOKEN_PICKLE_B64 }}
+          # للتجربة بدون تغيير حقيقي، أزل التعليق عن السطر التالي:
+          # DRY_RUN: "1"
+          # لتفعيل إضافة الهاشتاقات إلى الوصف:
+          # ADD_HASHTAGS: "1"
         run: python update_tags.py
 
-      - name: حفظ سجل التحديث في المستودع
+      - name: حفظ السجلات
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add update_log.json
-          # لا تفشل إن لم تكن هناك تغييرات
-          git diff --staged --quiet || git commit -m "تحديث سجل آخر تعديل للفيديوهات"
+          git add update_log.json change_log.json
+          git diff --staged --quiet || git commit -m "تحديث السجلات"
           git push
