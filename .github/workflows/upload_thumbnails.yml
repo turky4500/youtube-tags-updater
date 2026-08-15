@@ -1,0 +1,27 @@
+name: Upload Thumbnails
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  upload-thumbnails:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: تثبيت المكتبات
+        run: pip install google-auth google-api-python-client
+
+      - name: رفع المصغرات
+        env:
+          CLIENT_SECRET_JSON_B64: ${{ secrets.CLIENT_SECRET_JSON_B64 }}
+          TOKEN_PICKLE_B64: ${{ secrets.TOKEN_PICKLE_B64 }}
+        run: python upload_thumbnails.py
