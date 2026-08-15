@@ -12,8 +12,9 @@ TOKEN_PICKLE_B64 = os.environ.get("TOKEN_PICKLE_B64")
 MAX_TAGS_PER_VIDEO = 12
 MAX_VIDEOS_PER_RUN = 3
 HASHTAGS_PER_VIDEO = 5
+MAX_HASHTAG_LEN = 30
 DAYS_BETWEEN_UPDATES = 30
-OPTIMIZER_VERSION = 3
+OPTIMIZER_VERSION = 4
 DRY_RUN = os.environ.get("DRY_RUN", "0") == "1"
 
 LOG_FILE = "update_log.json"
@@ -92,10 +93,37 @@ def youtube_autocomplete(query):
 
 
 def normalize_tag(tag):
-    tag = re.sub(r"\s+", " ", (tag or "").strip().strip("#")).strip()
+    tag = re.sub(r"#+", " ", tag or "")
+    tag = re.sub(r"\s+", " ", tag).strip(" #")
     if not tag or len(tag) > 100 or contains_banned_words(tag):
         return ""
     return tag
+
+
+def clean_title_for_text(title):
+    """إزالة الهاشتاقات من العنوان وإزالة تكرار الكلمات، لاستخدامه في الوسوم والهاشتاقات والوصف."""
+    text = re.sub(r"#\S+", " ", title or "")
+    words, seen = [], set()
+    for word in re.split(r"\s+", text.strip()):
+        if not word:
+            continue
+        key = normalize_for_match(word)
+        if key in seen:
+            continue
+        seen.add(key)
+        words.append(word)
+    return " ".join(words)
+
+
+def tag_is_relevant(tag, title_words):
+    """علامة من كلمة تحتاج تطابق كلمة في العنوان، ومن كلمتين+ تحتاج كلمتين على الأقل."""
+    tag_words = keyword_set(tag)
+    if not tag_words or not title_words:
+        return False
+    overlap = tag_words & title_words
+    if len(tag_words) == 1:
+        return len(overlap) >= 1
+    return len(overlap) >= 2
 
 
 def suggestion_is_relevant(suggestion, title):
@@ -129,15 +157,16 @@ def get_relevant_suggestions(title):
 
 def build_tags(title, description, existing_tags):
     """بناء علامات مرتبطة مباشرة بالعنوان والمحتوى، دون حشو عشوائي."""
-    title_phrase = normalize_tag(title)
-    title_keywords = [normalize_tag(w) for w in extract_keywords(title)]
-    suggestions = [normalize_tag(s) for s in get_relevant_suggestions(title)]
+    cleaned_title = clean_title_for_text(title)
+    title_phrase = normalize_tag(cleaned_title)
+    title_keywords = [normalize_tag(w) for w in extract_keywords(cleaned_title)]
+    suggestions = [normalize_tag(s) for s in get_relevant_suggestions(cleaned_title)]
 
-    topic_words = keyword_set(title + " " + description)
+    title_words = keyword_set(cleaned_title)
     relevant_existing = []
     for tag in existing_tags or []:
         cleaned = normalize_tag(tag)
-        if cleaned and keyword_set(cleaned) & topic_words:
+        if cleaned and tag_is_relevant(cleaned, title_words):
             relevant_existing.append(cleaned)
 
     final, seen = [], set()
@@ -166,13 +195,14 @@ def hashtag_value(text):
         return ""
     text = re.sub(r"[^a-zA-Z0-9_\u0600-\u06FF\s]", "", text)
     text = re.sub(r"\s+", "_", text.strip())
-    if not text or len(text) > 60:
+    if not text or len(text) > MAX_HASHTAG_LEN:
         return ""
     return "#" + text
 
 
 def build_hashtags(title, tags):
-    candidates = [title] + extract_keywords(title) + list(tags)
+    cleaned_title = clean_title_for_text(title)
+    candidates = [cleaned_title] + extract_keywords(cleaned_title) + list(tags)
     hashtags, seen = [], set()
     for candidate in candidates:
         hashtag = hashtag_value(candidate)
@@ -227,18 +257,19 @@ def clean_existing_description(description, title):
 
 def build_description(title, existing_description, hashtags):
     """إعادة تنظيم الوصف كاملاً مع نص واضح وخمسة هاشتاقات مرتبطة."""
+    clean_title = clean_title_for_text(title) or title.strip()
     body = clean_existing_description(existing_description, title)
     if not body:
-        body = f"فيديو بعنوان «{title}» يقدم محتوى مرتبطًا بموضوع الفيديو بصورة واضحة ومباشرة."
+        body = f"فيديو بعنوان «{clean_title}» يقدم محتوى مرتبطًا بموضوع الفيديو بصورة واضحة ومباشرة."
 
     hashtag_line = " ".join(hashtags)
-    fixed_parts = [title.strip(), DESCRIPTION_CTA, hashtag_line]
+    fixed_parts = [clean_title, DESCRIPTION_CTA, hashtag_line]
     fixed_length = sum(len(part) for part in fixed_parts) + 4
     max_body_length = max(0, 5000 - fixed_length)
     if len(body) > max_body_length:
         body = body[:max_body_length].rsplit("\n", 1)[0].rstrip() or body[:max_body_length].rstrip()
 
-    return "\n\n".join(part for part in [title.strip(), body, DESCRIPTION_CTA, hashtag_line] if part)
+    return "\n\n".join(part for part in [clean_title, body, DESCRIPTION_CTA, hashtag_line] if part)
 
 
 def load_json(path):
