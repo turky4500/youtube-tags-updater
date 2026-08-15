@@ -11,9 +11,9 @@ TOKEN_PICKLE_B64 = os.environ.get("TOKEN_PICKLE_B64")
 
 # الخريطة: مسار الصورة -> معرّف الفيديو
 THUMBNAILS = {
-    "thumbnails/thumb_science_answers.jpg": "Rtc26yS045U",
-    "thumbnails/thumb_rawdah_mehna2.jpg": "35vPr6uAADY",
-    "thumbnails/thumb_rawdah_mehna1.jpg": "77W9iQ4j_tg",
+    "thumbnails/thumb_sareef2.jpg": "LR6b35DC0_Y",
+    "thumbnails/thumb_sareef1.jpg": "Sy28x-Pjaxc",
+    "thumbnails/thumb_mulayda.jpg": "fZWrS44tfjQ",
 }
 
 
