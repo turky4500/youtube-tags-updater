@@ -14,7 +14,7 @@ MAX_VIDEOS_PER_RUN = 3
 HASHTAGS_PER_VIDEO = 5
 MAX_HASHTAG_LEN = 30
 DAYS_BETWEEN_UPDATES = 30
-OPTIMIZER_VERSION = 4
+OPTIMIZER_VERSION = 5
 DRY_RUN = os.environ.get("DRY_RUN", "0") == "1"
 
 LOG_FILE = "update_log.json"
@@ -101,8 +101,8 @@ def normalize_tag(tag):
 
 
 def clean_title_for_text(title):
-    """إزالة الهاشتاقات من العنوان وإزالة تكرار الكلمات، لاستخدامه في الوسوم والهاشتاقات والوصف."""
-    text = re.sub(r"#\S+", " ", title or "")
+    """إزالة رموز # و _ من العنوان مع الإبقاء على الكلمات، وإزالة تكرار الكلمات."""
+    text = re.sub(r"[#_]", " ", title or "")
     words, seen = [], set()
     for word in re.split(r"\s+", text.strip()):
         if not word:
