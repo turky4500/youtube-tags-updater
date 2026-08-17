@@ -8,13 +8,14 @@ from googleapiclient.errors import HttpError
 # ============ الإعدادات ============
 CLIENT_SECRET_JSON_B64 = os.environ.get("CLIENT_SECRET_JSON_B64")
 TOKEN_PICKLE_B64 = os.environ.get("TOKEN_PICKLE_B64")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 MAX_TAGS_PER_VIDEO = 12
 MAX_VIDEOS_PER_RUN = 3
 HASHTAGS_PER_VIDEO = 5
 MAX_HASHTAG_LEN = 30
 DAYS_BETWEEN_UPDATES = 30
-OPTIMIZER_VERSION = 5
+OPTIMIZER_VERSION = 6
 DRY_RUN = os.environ.get("DRY_RUN", "0") == "1"
 
 LOG_FILE = "update_log.json"
@@ -255,10 +256,64 @@ def clean_existing_description(description, title):
     return "\n".join(lines).strip()
 
 
+def ai_description(title, existing_description):
+    """توليد وصف قصير بالذكاء الاصطناعي عبر Google Gemini.
+
+    يرجع None عندما لا يتوفر المفتاح أو يفشل الاتصال، حتى لا يتعطل التشغيل.
+    """
+    if not GEMINI_API_KEY:
+        return None
+
+    hint = (existing_description or "").strip()
+    if len(hint) > 400:
+        hint = hint[:400] + "…"
+
+    prompt = (
+        "اكتب وصفاً قصيراً وجذاباً لفيديو يوتيوب عنوانه: «{title}».\n"
+        "المطلوب:\n"
+        "- جملتان إلى ثلاث جمل بالعربية الفصحى المبسطة والطبيعية.\n"
+        "- اشرح ما يقدمه الفيديو بصورة عامة وواضحة دون اختراع تفاصيل أو أسماء غير مذكورة.\n"
+        "- لا تستخدم هاشتاقات ولا رموز تعبيرية (إيموجي).\n"
+        "- لا تذكر أرقاماً أو وعوداً غير مؤكدة.\n"
+        "أعد نص الوصف فقط دون أي مقدمة أو خاتمة أو شرح."
+    ).format(title=title)
+
+    if hint:
+        prompt += "\nالوصف الحالي للفيديو (استفد منه إن كان مفيداً): " + hint
+
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 350},
+    }).encode("utf-8")
+
+    for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+        try:
+            url = (
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                + model + ":generateContent?key=" + urllib.parse.quote(GEMINI_API_KEY)
+            )
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=20) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            candidates = data.get("candidates") or []
+            if not candidates:
+                return None
+            parts = candidates[0].get("content", {}).get("parts") or []
+            text = "".join(part.get("text", "") for part in parts).strip()
+            return text if text else None
+        except Exception as e:
+            print(f"⚠️ تعذّر توليد الوصف الذكي عبر {model}: {e}")
+
+    return None
+
+
 def build_description(title, existing_description, hashtags):
-    """إعادة تنظيم الوصف كاملاً مع نص واضح وخمسة هاشتاقات مرتبطة."""
+    """إعادة تنظيم الوصف مع محاولة توليد وصف ذكي، والرجوع للوصف العادي عند الفشل."""
     clean_title = clean_title_for_text(title) or title.strip()
-    body = clean_existing_description(existing_description, title)
+    cleaned_body = clean_existing_description(existing_description, title)
+    body = ai_description(clean_title, cleaned_body)
+    if not body:
+        body = cleaned_body
     if not body:
         body = f"فيديو بعنوان «{clean_title}» يقدم محتوى مرتبطًا بموضوع الفيديو بصورة واضحة ومباشرة."
 
