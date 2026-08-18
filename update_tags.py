@@ -286,25 +286,42 @@ def ai_description(title, existing_description):
         "generationConfig": {"temperature": 0.7, "maxOutputTokens": 350},
     }).encode("utf-8")
 
-    for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+    for model in ["gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-3.7-flash"]:
         try:
             url = (
                 "https://generativelanguage.googleapis.com/v1beta/models/"
                 + model + ":generateContent?key=" + urllib.parse.quote(GEMINI_API_KEY)
             )
             req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=20) as response:
+            with urllib.request.urlopen(req, timeout=60) as response:
                 data = json.loads(response.read().decode("utf-8"))
             candidates = data.get("candidates") or []
             if not candidates:
-                return None
+                continue
             parts = candidates[0].get("content", {}).get("parts") or []
-            text = "".join(part.get("text", "") for part in parts).strip()
-            return text if text else None
+            text = "".join(
+                part.get("text", "") for part in parts if not part.get("thought", False)
+            ).strip()
+            if text and _looks_like_description(text):
+                return text
         except Exception as e:
             print(f"⚠️ تعذّر توليد الوصف الذكي عبر {model}: {e}")
 
     return None
+
+
+def _looks_like_description(text):
+    """فحص بسيط يرفض الردود غير الطبيعية (إنجليزية زائدة أو نص بنيوي من النموذج)."""
+    if not text or len(text) < 8:
+        return False
+    low = text.lower()
+    if any(word in low for word in ["call to action", "wrap up", "hashtag", "emoji", "```"]):
+        return False
+    latin = len(re.findall(r"[a-zA-Z]", text))
+    arabic = len(re.findall(r"[\u0600-\u06FF]", text))
+    if arabic == 0 or latin > arabic:
+        return False
+    return True
 
 
 def build_description(title, existing_description, hashtags):
