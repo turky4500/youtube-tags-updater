@@ -15,7 +15,7 @@ MAX_VIDEOS_PER_RUN = 3
 HASHTAGS_PER_VIDEO = 5
 MAX_HASHTAG_LEN = 30
 DAYS_BETWEEN_UPDATES = 30
-OPTIMIZER_VERSION = 6
+OPTIMIZER_VERSION = 7
 DRY_RUN = os.environ.get("DRY_RUN", "0") == "1"
 
 LOG_FILE = "update_log.json"
@@ -324,13 +324,16 @@ def _looks_like_description(text):
     return True
 
 
-def build_description(title, existing_description, hashtags):
-    """إعادة تنظيم الوصف مع محاولة توليد وصف ذكي، والرجوع للوصف العادي عند الفشل."""
+def build_description_smart(title, existing_description, hashtags):
+    """بناء الوصف كاملاً للمرة الأولى: يحاول توليد وصف ذكي، ويرجع للوصف العادي عند الفشل.
+
+    يرجع زوجاً: (الوصف الكامل, هل استُخدم الذكاء الاصطناعي فعلاً).
+    """
     clean_title = clean_title_for_text(title) or title.strip()
     cleaned_body = clean_existing_description(existing_description, title)
-    body = ai_description(clean_title, cleaned_body)
-    if not body:
-        body = cleaned_body
+    ai_body = ai_description(clean_title, cleaned_body)
+    ai_used = bool(ai_body)
+    body = ai_body if ai_body else cleaned_body
     if not body:
         body = f"فيديو بعنوان «{clean_title}» يقدم محتوى مرتبطًا بموضوع الفيديو بصورة واضحة ومباشرة."
 
@@ -341,7 +344,22 @@ def build_description(title, existing_description, hashtags):
     if len(body) > max_body_length:
         body = body[:max_body_length].rsplit("\n", 1)[0].rstrip() or body[:max_body_length].rstrip()
 
-    return "\n\n".join(part for part in [clean_title, body, DESCRIPTION_CTA, hashtag_line] if part)
+    return "\n\n".join(part for part in [clean_title, body, DESCRIPTION_CTA, hashtag_line] if part), ai_used
+
+
+def refresh_hashtags_only(description, hashtags):
+    """تحديث سطر الهاشتاقات فقط مع الحفاظ على باقي الوصف (الوضع الدائم بعد المرة الأولى).
+
+    يرجع None إذا كان الوصف فارغاً أو ناقصاً حتى يبنى وصف كامل بدلاً من سطر وحيد.
+    """
+    text = (description or "").replace("\r\n", "\n").strip()
+    lines = text.split("\n")
+    while lines and (not lines[-1].strip() or is_hashtag_line(lines[-1])):
+        lines.pop()
+    body = "\n".join(lines).strip()
+    if not body:
+        return None
+    return body + "\n\n" + " ".join(hashtags)
 
 
 def load_json(path):
@@ -476,7 +494,7 @@ def update_video(youtube, video_id, title, new_tags, new_description):
         return False, f"❌ خطأ غير متوقع: {e}", None
 
 
-def record_change(change_log, video, change, hashtags, updated_at):
+def record_change(change_log, video, change, hashtags, updated_at, ai_written=False):
     old_record = change_log.get(video["vid"], {})
     history = []
     if isinstance(old_record, dict):
@@ -495,17 +513,21 @@ def record_change(change_log, video, change, hashtags, updated_at):
         "updated_at": updated_at,
         "optimizer_version": OPTIMIZER_VERSION,
     })
-    change_log[video["vid"]] = {
+    record = {
         "title": video["title"],
         "optimizer_version": OPTIMIZER_VERSION,
         "last_updated_at": updated_at,
         "history": history[-5:],
     }
+    # الحفاظ على علم "الوصف الذكي كُتب" حتى لا يُعاد كتابة الوصف لاحقاً.
+    if ai_written or (isinstance(old_record, dict) and old_record.get("ai_description_written")):
+        record["ai_description_written"] = True
+    change_log[video["vid"]] = record
 
 
 if __name__ == "__main__":
     mode = "🧪 DRY-RUN" if DRY_RUN else "🚀 LIVE"
-    print(f"{mode} — التحسين الشامل v{OPTIMIZER_VERSION} (علامات + وصف + هاشتاقات)")
+    print(f"{mode} — التحسين الشامل v{OPTIMIZER_VERSION} (علامات + وصف ذكي لمرة واحدة + هاشتاقات)")
 
     youtube = get_authenticated_service()
     update_log = load_json(LOG_FILE)
@@ -519,12 +541,25 @@ if __name__ == "__main__":
     for video in videos:
         tags = build_tags(video["title"], video["description"], video["tags"])
         hashtags = build_hashtags(video["title"], tags)
-        description = build_description(video["title"], video["description"], hashtags)
+
+        record = change_log.get(video["vid"], {})
+        ai_written_before = isinstance(record, dict) and record.get("ai_description_written") is True
+
+        if ai_written_before:
+            # الوصف كُتب سابقاً: نحدّث سطر الهاشتاقات فقط ونبقي الوصف ثابتاً.
+            description = refresh_hashtags_only(video["description"], hashtags)
+            ai_used = False
+            if description is None:
+                description, ai_used = build_description_smart(video["title"], video["description"], hashtags)
+        else:
+            # المرة الأولى: بناء وصف كامل (يحاول توليد وصف ذكي).
+            description, ai_used = build_description_smart(video["title"], video["description"], hashtags)
 
         if DRY_RUN:
             print(f"🧪 {video['title'][:45]}")
             print(f"   العلامات: {' | '.join(tags)}")
             print(f"   الهاشتاقات: {' '.join(hashtags)}")
+            print(f"   الوصف الذكي: {'نعم' if ai_used else 'لا'}")
             continue
 
         success, message, change = update_video(
@@ -534,7 +569,7 @@ if __name__ == "__main__":
         if success and change:
             updated_at = datetime.now(timezone.utc).isoformat()
             update_log[video["vid"]] = updated_at
-            record_change(change_log, video, change, hashtags, updated_at)
+            record_change(change_log, video, change, hashtags, updated_at, ai_written=ai_used)
             save_json(LOG_FILE, update_log)
             save_json(CHANGE_LOG_FILE, change_log)
         time.sleep(3)
