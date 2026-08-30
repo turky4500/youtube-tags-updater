@@ -2149,5 +2149,104 @@
       }
     ],
     "ai_description_written": true
+  },
+  "v4-6potkbF8": {
+    "title": "صوت سوناتا ديزل Sonata diesel",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-08-30T07:43:31.040163+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "الاتحاد المصري لكرة القدم",
+          "الفجر",
+          "دبلوم",
+          "زيدان"
+        ],
+        "new_tags": [
+          "صوت سوناتا ديزل Sonata diesel",
+          "صوت",
+          "سوناتا",
+          "ديزل",
+          "Sonata",
+          "diesel"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#صوت_سوناتا_ديزل_Sonata_diesel",
+          "#صوت",
+          "#سوناتا",
+          "#ديزل",
+          "#Sonata"
+        ],
+        "updated_at": "2026-08-30T07:43:31.040163+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "9SMjYbIMM1g": {
+    "title": "تأثير الجينات في البشر",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-08-30T07:43:35.446031+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "أحمد فتوح",
+          "الفجر",
+          "دبلوم",
+          "زيدان"
+        ],
+        "new_tags": [
+          "تأثير الجينات في البشر",
+          "تأثير الجينات على الشخصية",
+          "تأثير الجينات على العضلات",
+          "تأثير",
+          "الجينات",
+          "البشر"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#تأثير_الجينات_في_البشر",
+          "#تأثير",
+          "#الجينات",
+          "#البشر",
+          "#تأثير_الجينات_على_الشخصية"
+        ],
+        "updated_at": "2026-08-30T07:43:35.446031+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "WNA4axfPFjI": {
+    "title": "ملوك ماقبل الطوفان",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-08-30T07:43:40.160114+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "إلهام شاهين",
+          "الدكتور فود",
+          "مايكل أوليسه",
+          "نادي بشكتاش"
+        ],
+        "new_tags": [
+          "ملوك ماقبل الطوفان",
+          "ملوك",
+          "ماقبل",
+          "الطوفان"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#ملوك_ماقبل_الطوفان",
+          "#ملوك",
+          "#ماقبل",
+          "#الطوفان"
+        ],
+        "updated_at": "2026-08-30T07:43:40.160114+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
   }
 }
