@@ -3191,5 +3191,98 @@
       }
     ],
     "ai_description_written": true
+  },
+  "M4ugLFvjmOo": {
+    "title": "بث مباشر من القاهرة",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-09T06:57:14.891656+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "بنات عمير",
+          "سعر الريال السعودي اليوم",
+          "نتائج الثانوية العامة",
+          "نيمار"
+        ],
+        "new_tags": [
+          "بث",
+          "مباشر",
+          "القاهرة"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#بث",
+          "#مباشر",
+          "#القاهرة"
+        ],
+        "updated_at": "2026-09-09T06:57:14.891656+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "Lb1UapC4OS8": {
+    "title": "بث من طريق المدينة القصيم",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-09T06:57:19.513798+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "الفجر",
+          "بنات عمير",
+          "سعر الريال السعودي اليوم",
+          "نيمار"
+        ],
+        "new_tags": [
+          "بث من طريق المدينة القصيم",
+          "بث",
+          "طريق",
+          "المدينة",
+          "القصيم"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#بث_من_طريق_المدينة_القصيم",
+          "#بث",
+          "#طريق",
+          "#المدينة",
+          "#القصيم"
+        ],
+        "updated_at": "2026-09-09T06:57:19.513798+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "5fEaENeymgw": {
+    "title": "بث مباشر زحمات الرياض",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-09T06:57:24.237183+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "الراتب",
+          "الرياضية",
+          "الضمان",
+          "فارس"
+        ],
+        "new_tags": [
+          "بث",
+          "مباشر",
+          "زحمات",
+          "الرياض"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#بث",
+          "#مباشر",
+          "#زحمات",
+          "#الرياض"
+        ],
+        "updated_at": "2026-09-09T06:57:24.237183+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
   }
 }
