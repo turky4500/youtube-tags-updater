@@ -3284,5 +3284,102 @@
       }
     ],
     "ai_description_written": true
+  },
+  "hUyHiua8sg8": {
+    "title": "لعبة صيد الحمام",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-10T06:53:50.010145+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "الراتب",
+          "الرواتب",
+          "خالد الملا",
+          "رواتب"
+        ],
+        "new_tags": [
+          "لعبة صيد الحمام",
+          "لعبة",
+          "صيد",
+          "الحمام"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#لعبة_صيد_الحمام",
+          "#لعبة",
+          "#صيد",
+          "#الحمام"
+        ],
+        "updated_at": "2026-09-10T06:53:50.010145+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "y9PhT8KR6_8": {
+    "title": "دجاج حبش",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-10T06:54:00.225753+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "ارامكو",
+          "اعتماد",
+          "الرواتب",
+          "خالد الملا"
+        ],
+        "new_tags": [
+          "دجاج حبش",
+          "دجاج",
+          "حبش"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#دجاج_حبش",
+          "#دجاج",
+          "#حبش"
+        ],
+        "updated_at": "2026-09-10T06:54:00.225753+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "NAJEkbFaLLc": {
+    "title": "طبخ المبدع ابو يوسف يوم الجمعة",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-10T06:55:03.979036+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "تركيا",
+          "صحيفة",
+          "عاصفة رعدية",
+          "مانشستر سيتي"
+        ],
+        "new_tags": [
+          "طبخ المبدع ابو يوسف يوم الجمعة",
+          "طبخة يوم الجمعة",
+          "مطبخ ابو يوسف",
+          "طبخ",
+          "المبدع",
+          "ابو",
+          "يوسف",
+          "يوم",
+          "الجمعة"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#طبخ_المبدع_ابو_يوسف_يوم_الجمعة",
+          "#طبخ",
+          "#المبدع",
+          "#ابو",
+          "#يوسف"
+        ],
+        "updated_at": "2026-09-10T06:55:03.979036+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
   }
 }
