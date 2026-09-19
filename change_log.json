@@ -4214,5 +4214,96 @@
       }
     ],
     "ai_description_written": true
+  },
+  "wl_cRagaPOM": {
+    "title": "من تصويري لمطاعم البوسنة",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-19T06:54:41.199746+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "المريخ",
+          "شيرين",
+          "محمد هنيدي",
+          "ميدالية الاستحقاق"
+        ],
+        "new_tags": [
+          "من تصويري لمطاعم البوسنة",
+          "تصويري",
+          "لمطاعم",
+          "البوسنة"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#من_تصويري_لمطاعم_البوسنة",
+          "#تصويري",
+          "#لمطاعم",
+          "#البوسنة"
+        ],
+        "updated_at": "2026-09-19T06:54:41.199746+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "gIcwvVaXy3A": {
+    "title": "تصميم 002.avi",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-19T06:54:46.116737+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "بول بيا",
+          "شيرين",
+          "محمد هنيدي",
+          "ميدالية الاستحقاق"
+        ],
+        "new_tags": [
+          "تصميم 002.avi",
+          "تصميم",
+          "avi"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#تصميم_002avi",
+          "#تصميم",
+          "#avi"
+        ],
+        "updated_at": "2026-09-19T06:54:46.116737+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "4P-XVrHSgPw": {
+    "title": "كشتات تركي",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-19T06:54:51.114809+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "جورجينا رودريغيز",
+          "عاطف نجيب",
+          "عبدالرحمن السيد",
+          "مارينو بوسيتش"
+        ],
+        "new_tags": [
+          "كشتات تركي",
+          "كشتات ابو تركي",
+          "كشتات",
+          "تركي"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#كشتات_تركي",
+          "#كشتات",
+          "#تركي",
+          "#كشتات_ابو_تركي"
+        ],
+        "updated_at": "2026-09-19T06:54:51.114809+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
   }
 }
