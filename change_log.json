@@ -4305,5 +4305,92 @@
       }
     ],
     "ai_description_written": true
+  },
+  "ZW02rsh6v1s": {
+    "title": "كلام رائع للشيخ الشنقيطي",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-20T07:19:42.189157+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "جورجينا رودريغيز",
+          "رايات",
+          "عاطف نجيب",
+          "نبيل فقير"
+        ],
+        "new_tags": [
+          "كلام رائع للشيخ الشنقيطي",
+          "كلام",
+          "رائع",
+          "للشيخ",
+          "الشنقيطي"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#كلام_رائع_للشيخ_الشنقيطي",
+          "#كلام",
+          "#رائع",
+          "#للشيخ",
+          "#الشنقيطي"
+        ],
+        "updated_at": "2026-09-20T07:19:42.189157+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "b1x7Twvn1IU": {
+    "title": "شعيب اوثيلان من تصويري",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-20T07:19:47.225328+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "خرف",
+          "عمرو دياب",
+          "موساد",
+          "نجران"
+        ],
+        "new_tags": [
+          "شعيب اوثيلان من تصويري",
+          "شعيب",
+          "اوثيلان",
+          "تصويري"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#شعيب_اوثيلان_من_تصويري",
+          "#شعيب",
+          "#اوثيلان",
+          "#تصويري"
+        ],
+        "updated_at": "2026-09-20T07:19:47.225328+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
+  },
+  "AcuXULNIQPQ": {
+    "title": "ﺍﻟﺪﺍﻓﻮﺭ",
+    "optimizer_version": 7,
+    "last_updated_at": "2026-09-20T07:19:52.296901+00:00",
+    "history": [
+      {
+        "old_tags": [
+          "المذيعة سارة خليفة",
+          "خرف",
+          "عمرو دياب",
+          "فينيسيوس جونيور"
+        ],
+        "new_tags": [
+          "ﺍﻟﺪﺍﻓﻮﺭ"
+        ],
+        "description_changed": true,
+        "hashtags": [],
+        "updated_at": "2026-09-20T07:19:52.296901+00:00",
+        "optimizer_version": 7
+      }
+    ],
+    "ai_description_written": true
   }
 }
