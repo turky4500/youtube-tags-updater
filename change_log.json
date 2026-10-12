@@ -4943,7 +4943,7 @@
   "Pap1aCHXEZc": {
     "title": "جامع القلعة في مصر",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-08T06:48:22.886465+00:00",
+    "last_updated_at": "2026-10-12T08:23:32.595229+00:00",
     "history": [
       {
         "old_tags": [
@@ -4967,6 +4967,29 @@
         ],
         "updated_at": "2026-09-08T06:48:22.886465+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "القلعة",
+          "جامع",
+          "جامع القلعة في مصر",
+          "مصر"
+        ],
+        "new_tags": [
+          "جامع القلعة في مصر",
+          "جامع",
+          "القلعة",
+          "مصر"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#جامع_القلعة_في_مصر",
+          "#جامع",
+          "#القلعة",
+          "#مصر"
+        ],
+        "updated_at": "2026-10-12T08:23:32.595229+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -4974,7 +4997,7 @@
   "M4ugLFvjmOo": {
     "title": "بث مباشر من القاهرة",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-09T06:57:14.891656+00:00",
+    "last_updated_at": "2026-10-12T08:23:35.989266+00:00",
     "history": [
       {
         "old_tags": [
@@ -4996,6 +5019,26 @@
         ],
         "updated_at": "2026-09-09T06:57:14.891656+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "القاهرة",
+          "بث",
+          "مباشر"
+        ],
+        "new_tags": [
+          "بث",
+          "مباشر",
+          "القاهرة"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#بث",
+          "#مباشر",
+          "#القاهرة"
+        ],
+        "updated_at": "2026-10-12T08:23:35.989266+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -5003,7 +5046,7 @@
   "Lb1UapC4OS8": {
     "title": "بث من طريق المدينة القصيم",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-09T06:57:19.513798+00:00",
+    "last_updated_at": "2026-10-12T08:23:39.312813+00:00",
     "history": [
       {
         "old_tags": [
@@ -5028,6 +5071,32 @@
           "#القصيم"
         ],
         "updated_at": "2026-09-09T06:57:19.513798+00:00",
+        "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "القصيم",
+          "المدينة",
+          "بث",
+          "بث من طريق المدينة القصيم",
+          "طريق"
+        ],
+        "new_tags": [
+          "بث من طريق المدينة القصيم",
+          "بث",
+          "طريق",
+          "المدينة",
+          "القصيم"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#بث_من_طريق_المدينة_القصيم",
+          "#بث",
+          "#طريق",
+          "#المدينة",
+          "#القصيم"
+        ],
+        "updated_at": "2026-10-12T08:23:39.312813+00:00",
         "optimizer_version": 7
       }
     ],
