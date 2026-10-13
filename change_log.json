@@ -5105,7 +5105,7 @@
   "5fEaENeymgw": {
     "title": "بث مباشر زحمات الرياض",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-09T06:57:24.237183+00:00",
+    "last_updated_at": "2026-10-13T08:48:22.505749+00:00",
     "history": [
       {
         "old_tags": [
@@ -5129,6 +5129,29 @@
         ],
         "updated_at": "2026-09-09T06:57:24.237183+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "الرياض",
+          "بث",
+          "زحمات",
+          "مباشر"
+        ],
+        "new_tags": [
+          "بث",
+          "مباشر",
+          "زحمات",
+          "الرياض"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#بث",
+          "#مباشر",
+          "#زحمات",
+          "#الرياض"
+        ],
+        "updated_at": "2026-10-13T08:48:22.505749+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -5136,7 +5159,7 @@
   "hUyHiua8sg8": {
     "title": "لعبة صيد الحمام",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-10T06:53:50.010145+00:00",
+    "last_updated_at": "2026-10-13T08:48:26.291099+00:00",
     "history": [
       {
         "old_tags": [
@@ -5160,6 +5183,32 @@
         ],
         "updated_at": "2026-09-10T06:53:50.010145+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "الحمام",
+          "صيد",
+          "لعبة",
+          "لعبة صيد الحمام"
+        ],
+        "new_tags": [
+          "لعبة صيد الحمام",
+          "لعبة صيد حمام",
+          "لعبة صيد طيور",
+          "لعبة",
+          "صيد",
+          "الحمام"
+        ],
+        "description_changed": true,
+        "hashtags": [
+          "#لعبة_صيد_الحمام",
+          "#لعبة",
+          "#صيد",
+          "#الحمام",
+          "#لعبة_صيد_حمام"
+        ],
+        "updated_at": "2026-10-13T08:48:26.291099+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -5167,7 +5216,7 @@
   "y9PhT8KR6_8": {
     "title": "دجاج حبش",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-10T06:54:00.225753+00:00",
+    "last_updated_at": "2026-10-13T08:48:29.734137+00:00",
     "history": [
       {
         "old_tags": [
@@ -5188,6 +5237,26 @@
           "#حبش"
         ],
         "updated_at": "2026-09-10T06:54:00.225753+00:00",
+        "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "حبش",
+          "دجاج",
+          "دجاج حبش"
+        ],
+        "new_tags": [
+          "دجاج حبش",
+          "دجاج",
+          "حبش"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#دجاج_حبش",
+          "#دجاج",
+          "#حبش"
+        ],
+        "updated_at": "2026-10-13T08:48:29.734137+00:00",
         "optimizer_version": 7
       }
     ],
