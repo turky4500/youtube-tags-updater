@@ -5473,7 +5473,7 @@
   "dtSxZ5q2ljU": {
     "title": "التسارع الزمني الدوام",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-11T06:53:39.970828+00:00",
+    "last_updated_at": "2026-10-15T06:49:30.930363+00:00",
     "history": [
       {
         "old_tags": [
@@ -5497,6 +5497,29 @@
         ],
         "updated_at": "2026-09-11T06:53:39.970828+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "التسارع",
+          "التسارع الزمني الدوام",
+          "الدوام",
+          "الزمني"
+        ],
+        "new_tags": [
+          "التسارع الزمني الدوام",
+          "التسارع",
+          "الزمني",
+          "الدوام"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#التسارع_الزمني_الدوام",
+          "#التسارع",
+          "#الزمني",
+          "#الدوام"
+        ],
+        "updated_at": "2026-10-15T06:49:30.930363+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -5504,7 +5527,7 @@
   "7VGRgoPqDuo": {
     "title": "التسارع الزمني ١",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-12T06:45:02.435312+00:00",
+    "last_updated_at": "2026-10-15T06:49:34.463510+00:00",
     "history": [
       {
         "old_tags": [
@@ -5526,6 +5549,26 @@
         ],
         "updated_at": "2026-09-12T06:45:02.435312+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "التسارع",
+          "التسارع الزمني ١",
+          "الزمني"
+        ],
+        "new_tags": [
+          "التسارع الزمني ١",
+          "التسارع",
+          "الزمني"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#التسارع_الزمني_١",
+          "#التسارع",
+          "#الزمني"
+        ],
+        "updated_at": "2026-10-15T06:49:34.463510+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -5533,7 +5576,7 @@
   "Z_lgK7CHajM": {
     "title": "GXR ديزل لاندكروزر",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-12T06:45:08.122144+00:00",
+    "last_updated_at": "2026-10-15T06:49:38.010716+00:00",
     "history": [
       {
         "old_tags": [
@@ -5558,6 +5601,33 @@
           "#لاندكروزر_gxr_ديزل"
         ],
         "updated_at": "2026-09-12T06:45:08.122144+00:00",
+        "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "GXR",
+          "GXR ديزل لاندكروزر",
+          "ديزل",
+          "لاندكروزر",
+          "لاندكروزر gxr ديزل"
+        ],
+        "new_tags": [
+          "GXR ديزل لاندكروزر",
+          "لاندكروزر gxr ديزل",
+          "gxr ديزل",
+          "GXR",
+          "ديزل",
+          "لاندكروزر"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#GXR_ديزل_لاندكروزر",
+          "#GXR",
+          "#ديزل",
+          "#لاندكروزر",
+          "#لاندكروزر_gxr_ديزل"
+        ],
+        "updated_at": "2026-10-15T06:49:38.010716+00:00",
         "optimizer_version": 7
       }
     ],
