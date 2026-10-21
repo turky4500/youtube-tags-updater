@@ -6628,7 +6628,7 @@
   "WGSTV8HMejY": {
     "title": "القلب من جور الزمن لاحقه كي",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-17T06:59:08.712606+00:00",
+    "last_updated_at": "2026-10-21T06:52:08.720628+00:00",
     "history": [
       {
         "old_tags": [
@@ -6655,6 +6655,34 @@
         ],
         "updated_at": "2026-09-17T06:59:08.712606+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "الزمن",
+          "القلب",
+          "القلب من جور الزمن لاحقه كي",
+          "جور",
+          "كي",
+          "لاحقه"
+        ],
+        "new_tags": [
+          "القلب من جور الزمن لاحقه كي",
+          "القلب",
+          "جور",
+          "الزمن",
+          "لاحقه",
+          "كي"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#القلب_من_جور_الزمن_لاحقه_كي",
+          "#القلب",
+          "#جور",
+          "#الزمن",
+          "#لاحقه"
+        ],
+        "updated_at": "2026-10-21T06:52:08.720628+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -6662,7 +6690,7 @@
   "DC8YP4KGWL4": {
     "title": "شرح موقع مملكة الرسائل Kingsms ws",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-18T06:55:52.083803+00:00",
+    "last_updated_at": "2026-10-21T06:52:12.280457+00:00",
     "history": [
       {
         "old_tags": [
@@ -6689,6 +6717,35 @@
         ],
         "updated_at": "2026-09-18T06:55:52.083803+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "Kingsms",
+          "الرسائل",
+          "شرح",
+          "شرح موقع مملكة الرسائل Kingsms ws",
+          "مملكة",
+          "موقع"
+        ],
+        "new_tags": [
+          "شرح موقع مملكة الرسائل Kingsms ws",
+          "شرح موقع writesonic",
+          "شرح",
+          "موقع",
+          "مملكة",
+          "الرسائل",
+          "Kingsms"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#شرح",
+          "#موقع",
+          "#مملكة",
+          "#الرسائل",
+          "#Kingsms"
+        ],
+        "updated_at": "2026-10-21T06:52:12.280457+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -6696,7 +6753,7 @@
   "JYVrI_EncFY": {
     "title": "شرح موقع مملكة الرسائل Kingsms ws  التسجيل",
     "optimizer_version": 7,
-    "last_updated_at": "2026-09-18T06:55:56.863187+00:00",
+    "last_updated_at": "2026-10-21T06:52:15.972609+00:00",
     "history": [
       {
         "old_tags": [
@@ -6723,6 +6780,37 @@
           "#Kingsms"
         ],
         "updated_at": "2026-09-18T06:55:56.863187+00:00",
+        "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "Kingsms",
+          "التسجيل",
+          "الرسائل",
+          "شرح",
+          "شرح موقع مملكة الرسائل Kingsms ws التسجيل",
+          "مملكة",
+          "موقع"
+        ],
+        "new_tags": [
+          "شرح موقع مملكة الرسائل Kingsms ws التسجيل",
+          "شرح موقع writesonic",
+          "شرح",
+          "موقع",
+          "مملكة",
+          "الرسائل",
+          "Kingsms",
+          "التسجيل"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#شرح",
+          "#موقع",
+          "#مملكة",
+          "#الرسائل",
+          "#Kingsms"
+        ],
+        "updated_at": "2026-10-21T06:52:15.972609+00:00",
         "optimizer_version": 7
       }
     ],
