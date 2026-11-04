@@ -3754,7 +3754,7 @@
   "iJZfMQKkT34": {
     "title": "طبخ وشوي القميري والدخل",
     "optimizer_version": 7,
-    "last_updated_at": "2026-10-01T08:07:44.809445+00:00",
+    "last_updated_at": "2026-11-04T08:24:41.571219+00:00",
     "history": [
       {
         "old_tags": [
@@ -3806,6 +3806,32 @@
         ],
         "updated_at": "2026-10-01T08:07:44.809445+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "القميري",
+          "طبخ",
+          "طبخ وشوي القميري والدخل",
+          "والدخل",
+          "وشوي"
+        ],
+        "new_tags": [
+          "طبخ وشوي القميري والدخل",
+          "طبخ",
+          "وشوي",
+          "القميري",
+          "والدخل"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#طبخ_وشوي_القميري_والدخل",
+          "#طبخ",
+          "#وشوي",
+          "#القميري",
+          "#والدخل"
+        ],
+        "updated_at": "2026-11-04T08:24:41.571219+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -3813,7 +3839,7 @@
   "ifdGo_thtkQ": {
     "title": "ريحة اكلك قلي التاوه",
     "optimizer_version": 7,
-    "last_updated_at": "2026-10-02T07:49:02.171517+00:00",
+    "last_updated_at": "2026-11-04T08:24:44.831960+00:00",
     "history": [
       {
         "old_tags": [
@@ -3866,6 +3892,34 @@
         ],
         "updated_at": "2026-10-02T07:49:02.171517+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "اكلك",
+          "التاوه",
+          "ريحة",
+          "ريحة اكلك",
+          "ريحة اكلك قلي التاوه",
+          "قلي"
+        ],
+        "new_tags": [
+          "ريحة اكلك قلي التاوه",
+          "ريحة اكلك",
+          "ريحة",
+          "اكلك",
+          "قلي",
+          "التاوه"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#ريحة_اكلك_قلي_التاوه",
+          "#ريحة",
+          "#اكلك",
+          "#قلي",
+          "#التاوه"
+        ],
+        "updated_at": "2026-11-04T08:24:44.831960+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -3873,7 +3927,7 @@
   "v4-6potkbF8": {
     "title": "صوت سوناتا ديزل Sonata diesel",
     "optimizer_version": 7,
-    "last_updated_at": "2026-10-02T07:49:05.829931+00:00",
+    "last_updated_at": "2026-11-04T08:24:48.234915+00:00",
     "history": [
       {
         "old_tags": [
@@ -3928,6 +3982,36 @@
           "#Sonata"
         ],
         "updated_at": "2026-10-02T07:49:05.829931+00:00",
+        "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "Sonata",
+          "diesel",
+          "ديزل",
+          "سوناتا",
+          "صوت",
+          "صوت سوناتا 2018",
+          "صوت سوناتا ديزل Sonata diesel"
+        ],
+        "new_tags": [
+          "صوت سوناتا ديزل Sonata diesel",
+          "صوت سوناتا 2018",
+          "صوت",
+          "سوناتا",
+          "ديزل",
+          "Sonata",
+          "diesel"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#صوت_سوناتا_ديزل_Sonata_diesel",
+          "#صوت",
+          "#سوناتا",
+          "#ديزل",
+          "#Sonata"
+        ],
+        "updated_at": "2026-11-04T08:24:48.234915+00:00",
         "optimizer_version": 7
       }
     ],
