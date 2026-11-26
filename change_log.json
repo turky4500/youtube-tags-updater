@@ -9936,7 +9936,7 @@
   "b1x7Twvn1IU": {
     "title": "شعيب اوثيلان من تصويري",
     "optimizer_version": 7,
-    "last_updated_at": "2026-10-23T06:48:53.771250+00:00",
+    "last_updated_at": "2026-11-26T10:17:35.819643+00:00",
     "history": [
       {
         "old_tags": [
@@ -9983,6 +9983,29 @@
         ],
         "updated_at": "2026-10-23T06:48:53.771250+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "اوثيلان",
+          "تصويري",
+          "شعيب",
+          "شعيب اوثيلان من تصويري"
+        ],
+        "new_tags": [
+          "شعيب اوثيلان من تصويري",
+          "شعيب",
+          "اوثيلان",
+          "تصويري"
+        ],
+        "description_changed": false,
+        "hashtags": [
+          "#شعيب_اوثيلان_من_تصويري",
+          "#شعيب",
+          "#اوثيلان",
+          "#تصويري"
+        ],
+        "updated_at": "2026-11-26T10:17:35.819643+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -9990,7 +10013,7 @@
   "AcuXULNIQPQ": {
     "title": "ﺍﻟﺪﺍﻓﻮﺭ",
     "optimizer_version": 7,
-    "last_updated_at": "2026-10-24T06:45:01.329349+00:00",
+    "last_updated_at": "2026-11-26T10:17:39.093741+00:00",
     "history": [
       {
         "old_tags": [
@@ -10018,6 +10041,18 @@
         "hashtags": [],
         "updated_at": "2026-10-24T06:45:01.329349+00:00",
         "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "ﺍﻟﺪﺍﻓﻮﺭ"
+        ],
+        "new_tags": [
+          "ﺍﻟﺪﺍﻓﻮﺭ"
+        ],
+        "description_changed": true,
+        "hashtags": [],
+        "updated_at": "2026-11-26T10:17:39.093741+00:00",
+        "optimizer_version": 7
       }
     ],
     "ai_description_written": true
@@ -10025,7 +10060,7 @@
   "jMqj45ntHHg": {
     "title": "ﺍﻟﻤﻄﺮ ﺑﺎﻟﺪﻭﺍﻡ",
     "optimizer_version": 7,
-    "last_updated_at": "2026-10-24T06:45:04.755730+00:00",
+    "last_updated_at": "2026-11-26T10:17:42.470706+00:00",
     "history": [
       {
         "old_tags": [
@@ -10052,6 +10087,18 @@
         "description_changed": true,
         "hashtags": [],
         "updated_at": "2026-10-24T06:45:04.755730+00:00",
+        "optimizer_version": 7
+      },
+      {
+        "old_tags": [
+          "ﺍﻟﻤﻄﺮ ﺑﺎﻟﺪﻭﺍﻡ"
+        ],
+        "new_tags": [
+          "ﺍﻟﻤﻄﺮ ﺑﺎﻟﺪﻭﺍﻡ"
+        ],
+        "description_changed": true,
+        "hashtags": [],
+        "updated_at": "2026-11-26T10:17:42.470706+00:00",
         "optimizer_version": 7
       }
     ],
